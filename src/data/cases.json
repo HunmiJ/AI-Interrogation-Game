@@ -1,0 +1,24 @@
+[
+  {
+    "id": "midnight-cafe-theft",
+    "title": "午夜咖啡馆失窃案",
+    "subtitle": "一扇从内部撬开的后门，一段消失的九分钟。",
+    "caseNumber": "MCPD-0714",
+    "location": "雾港区 · 夜航咖啡馆",
+    "occurredAt": "7 月 14 日 22:50—23:20",
+    "difficulty": "中等",
+    "estimatedMinutes": 15,
+    "summary": "夜航咖啡馆周年慈善夜结束后，锁在办公室柜中的 48,000 元募款和一本记录独家配方的手写烘焙日志同时失踪。店内没有明显闯入痕迹，后门锁却留下新鲜刮痕。案发时，店里只剩最后三名相关人员。",
+    "objective": "审讯三名嫌疑人，核对口供与物证，在结案前锁定真正的盗窃者。",
+    "stolenItems": ["慈善募款 48,000 元", "创始人手写烘焙日志"],
+    "initialEvidenceIds": ["rear-door-scratches", "alarm-log"],
+    "npcIds": ["jack", "alice", "tom"],
+    "timeline": [
+      { "time": "22:45", "description": "周年活动结束，客人开始离场" },
+      { "time": "22:52", "description": "Alice 完成打卡，监控显示她离开前厅" },
+      { "time": "23:07", "description": "办公室警报被正确密码解除" },
+      { "time": "23:16", "description": "后门传感器被触发" },
+      { "time": "23:24", "description": "Tom 报警称发现柜门未锁" }
+    ]
+  }
+]

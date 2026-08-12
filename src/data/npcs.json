@@ -1,0 +1,38 @@
+[
+  {
+    "id": "jack",
+    "name": "Jack",
+    "occupation": "自由摄影师",
+    "age": 29,
+    "pronouns": "他",
+    "personality": ["观察敏锐", "玩世不恭", "回避冲突"],
+    "publicInformation": ["受邀为周年活动拍照", "声称 22:45 已经离店", "近期多次向咖啡馆催讨尾款"],
+    "status": "口供时间存疑",
+    "accent": "#9f7aea",
+    "initials": "JK"
+  },
+  {
+    "id": "alice",
+    "name": "Alice",
+    "occupation": "咖啡店兼职员工",
+    "age": 22,
+    "pronouns": "她",
+    "personality": ["谨慎", "机敏", "容易紧张"],
+    "publicInformation": ["熟悉后门和办公室布局", "上周借用过办公室备用钥匙", "案发前刚被拒绝加薪"],
+    "status": "具备现场权限",
+    "accent": "#4da3a6",
+    "initials": "AL"
+  },
+  {
+    "id": "tom",
+    "name": "Tom",
+    "occupation": "咖啡店店长",
+    "age": 41,
+    "pronouns": "他",
+    "personality": ["沉稳", "讲究秩序", "善于掌控谈话"],
+    "publicInformation": ["最先发现失窃并报警", "唯一长期持有警报密码的人", "声称案发时在楼上打供应商电话"],
+    "status": "报案人与管理者",
+    "accent": "#bd7b54",
+    "initials": "TM"
+  }
+]

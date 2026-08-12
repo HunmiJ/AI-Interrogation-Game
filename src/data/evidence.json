@@ -1,0 +1,82 @@
+[
+  {
+    "id": "rear-door-scratches",
+    "title": "后门锁刮痕",
+    "description": "锁芯外侧完好，门内侧金属扣却有新鲜刮痕。刮痕方向更像从店内制造。",
+    "category": "physical",
+    "source": "现场勘查",
+    "significance": "所谓外部闯入可能是事后伪造。",
+    "relatedNpcIds": ["alice", "tom"],
+    "isKey": true
+  },
+  {
+    "id": "alarm-log",
+    "title": "办公室警报记录",
+    "description": "23:07，警报由一次正确的四位密码输入解除，没有失败记录。",
+    "category": "digital",
+    "source": "安保主机",
+    "significance": "进入者熟知密码，并非仓促试探。",
+    "relatedNpcIds": ["tom"],
+    "isKey": true
+  },
+  {
+    "id": "memory-card-photo",
+    "title": "23:09 的相机原片",
+    "description": "玻璃反光中，Tom 正站在办公室门口，手里拿着活动募款箱。原片时间戳未经修改。",
+    "category": "digital",
+    "source": "Jack 的相机",
+    "significance": "直接推翻 Tom 声称当时在楼上打电话的口供。",
+    "relatedNpcIds": ["jack", "tom"],
+    "isKey": true
+  },
+  {
+    "id": "camera-metadata",
+    "title": "相机定位元数据",
+    "description": "Jack 的相机在 23:12 仍连接咖啡馆 Wi-Fi，说明他谎报了离店时间。",
+    "category": "digital",
+    "source": "相机连接记录",
+    "significance": "解释了 Jack 的隐瞒，也让他的证词需要谨慎核验。",
+    "relatedNpcIds": ["jack"],
+    "isKey": false
+  },
+  {
+    "id": "key-return-log",
+    "title": "备用钥匙交还记录",
+    "description": "前台电子柜记录显示，Alice 在案发当天 18:03 已归还办公室备用钥匙。",
+    "category": "document",
+    "source": "钥匙柜日志",
+    "significance": "削弱了 Alice 使用备用钥匙实施盗窃的可能。",
+    "relatedNpcIds": ["alice"],
+    "isKey": false
+  },
+  {
+    "id": "transit-record",
+    "title": "末班车乘车记录",
+    "description": "Alice 在 23:11 刷卡进入两个街区外的地铁站，与她短暂返回后离开的说法吻合。",
+    "category": "digital",
+    "source": "交通卡记录",
+    "significance": "她在后门 23:16 被触发时已不在现场。",
+    "relatedNpcIds": ["alice"],
+    "isKey": true
+  },
+  {
+    "id": "supplier-call-record",
+    "title": "不存在的供应商通话",
+    "description": "运营商详单显示，Tom 在 22:31 后没有任何呼出或接听记录。",
+    "category": "document",
+    "source": "通话详单",
+    "significance": "Tom 为案发时段编造了不在场理由。",
+    "relatedNpcIds": ["tom"],
+    "isKey": true
+  },
+  {
+    "id": "debt-letter",
+    "title": "逾期催款通知",
+    "description": "Tom 的储物柜中有一封 48,000 元逾期催款通知，最后还款日正是案发次日。",
+    "category": "document",
+    "source": "员工储物柜",
+    "significance": "金额与失窃募款一致，构成明确动机但并非单独定罪证据。",
+    "relatedNpcIds": ["tom"],
+    "isKey": true
+  }
+]
