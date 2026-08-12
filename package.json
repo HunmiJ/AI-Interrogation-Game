@@ -1,7 +1,7 @@
 {
   "name": "ai-interrogation-game",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently --kill-others -n server,client -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
@@ -12,6 +12,8 @@
     "test": "tsx --test server/**/*.test.ts",
     "smoke:deepseek": "tsx server/scripts/deepseekSmoke.ts",
     "smoke:interrogate": "tsx server/scripts/interrogateSmoke.ts",
+    "smoke:v03": "tsx server/scripts/v03InvestigationSmoke.ts",
+    "smoke:v03:contradiction": "tsx server/scripts/v03ContradictionSmoke.ts",
     "start": "tsx server/index.ts",
     "preview": "vite preview"
   },

@@ -2,6 +2,7 @@ import { publicCaseContext } from '../data/caseContext'
 import { getDiscoveredEvidence } from '../data/evidenceCatalog'
 import type { AgentProfile } from '../types/agent'
 import { behaviorRules } from './behaviorRules'
+import { getAllowedInvestigationTriggers } from '../data/investigationRules'
 import {
   goalSection,
   knowledgeBoundarySection,
@@ -38,6 +39,14 @@ ${evidenceSection}
   const historySection = `## CONVERSATION HISTORY
 系统会在本提示之后按时间顺序提供你与这名调查员此前的对话。只把 assistant 消息视为你自己曾经说过的话，并尽量维持一致。不要混入其他嫌疑人的对话。`
 
+  const triggers = getAllowedInvestigationTriggers(profile.id)
+  const triggerSection = `## ALLOWED INVESTIGATION IDS
+revealedFactIds 只能从以下 ID 选择。每项都包含其语义；如果 reply 明确承认了对应事实，必须把该 ID 放入 revealedFactIds，不能只在自然语言中承认却返回空数组：
+${triggers.facts.map((fact) => `- [${fact.id}] ${fact.title}：${fact.description} 触发标准：${fact.revealConditions}`).join('\n') || '- 无'}
+contradictionIds 只能从以下 ID 选择，并且只有本轮回答确实形成或被证据击中对应矛盾时才填写：
+${triggers.contradictions.map((item) => `- [${item.id}] ${item.title}：${item.description}`).join('\n') || '- 无'}
+禁止创造、改写或猜测任何新 ID。是否真正解锁由服务器规则决定。`
+
   return [
     roleSection(profile),
     personalitySection(profile),
@@ -52,6 +61,7 @@ ${evidenceSection}
     truthStrategySection(profile),
     currentEvidenceSection,
     historySection,
+    triggerSection,
     behaviorRules,
   ].join('\n\n')
 }

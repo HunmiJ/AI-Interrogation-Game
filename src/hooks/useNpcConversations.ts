@@ -2,11 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { InterrogationApiError, requestInterrogation } from '../services/interrogationApi'
 import type { AiConversationMessage, ConversationMap, InterrogationUiError } from '../types/interrogation'
 import { appendNpcMessage, getNpcConversation } from '../utils/conversationState'
+import type { InvestigationUpdate } from '../utils/investigationRules'
 
 interface FailedRequest {
   message: string
   history: AiConversationMessage[]
   discoveredEvidenceIds: string[]
+  presentedEvidenceIds: string[]
+  discoveredFactIds: string[]
+  discoveredContradictionIds: string[]
 }
 
 export type AiRuntimeStatus = 'live' | 'offline'
@@ -29,7 +33,7 @@ function messageId() {
   return crypto.randomUUID()
 }
 
-export function useNpcConversations() {
+export function useNpcConversations(onInvestigationUpdate: (update: InvestigationUpdate) => void) {
   const [conversations, setConversations] = useState<ConversationMap>({})
   const [pendingByNpc, setPendingByNpc] = useState<Record<string, boolean>>({})
   const [errorsByNpc, setErrorsByNpc] = useState<Record<string, InterrogationUiError | null>>({})
@@ -69,6 +73,9 @@ export function useNpcConversations() {
     message: string,
     history: AiConversationMessage[],
     discoveredEvidenceIds: string[],
+    presentedEvidenceIds: string[],
+    discoveredFactIds: string[],
+    discoveredContradictionIds: string[],
     appendUserMessage: boolean,
   ) => {
     if (pendingRef.current[npcId]) return
@@ -82,7 +89,15 @@ export function useNpcConversations() {
     }
 
     try {
-      const result = await requestInterrogation({ npcId, message, conversationHistory: history, discoveredEvidenceIds })
+      const result = await requestInterrogation({
+        npcId,
+        message,
+        conversationHistory: history,
+        discoveredEvidenceIds,
+        presentedEvidenceIds,
+        discoveredFactIds,
+        discoveredContradictionIds,
+      })
       const assistantMessage: AiConversationMessage = {
         id: messageId(),
         role: 'assistant',
@@ -90,15 +105,20 @@ export function useNpcConversations() {
         emotion: result.emotion,
         revealedFactIds: result.revealedFactIds,
         contradictionIds: result.contradictionIds,
+        unlockedEvidenceIds: result.unlockedEvidenceIds,
+        presentedEvidenceIds: result.presentedEvidenceIds,
       }
       setConversations((current) => appendNpcMessage(current, npcId, assistantMessage))
       failedByNpc.current[npcId] = undefined
       if (isDeepSeekRef.current) setRuntimeStatus('live')
+      onInvestigationUpdate(result)
     } catch (error) {
       const apiError = error instanceof InterrogationApiError
         ? error
         : new InterrogationApiError('UNKNOWN_ERROR', 'AI 审讯暂时不可用。', true)
-      failedByNpc.current[npcId] = { message, history, discoveredEvidenceIds }
+      failedByNpc.current[npcId] = {
+        message, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds,
+      }
       setErrorsByNpc((current) => ({
         ...current,
         [npcId]: { code: apiError.code, message: apiError.message, retryable: apiError.retryable },
@@ -108,19 +128,31 @@ export function useNpcConversations() {
       pendingRef.current[npcId] = false
       setPendingByNpc((current) => ({ ...current, [npcId]: false }))
     }
-  }, [])
+  }, [onInvestigationUpdate])
 
-  const sendMessage = useCallback((npcId: string, message: string, discoveredEvidenceIds: string[]) => {
+  const sendMessage = useCallback((
+    npcId: string,
+    message: string,
+    discoveredEvidenceIds: string[],
+    presentedEvidenceIds: string[],
+    discoveredFactIds: string[],
+    discoveredContradictionIds: string[],
+  ) => {
     const trimmed = message.trim()
     if (!trimmed || trimmed.length > 500 || pendingRef.current[npcId]) return
     const history = getNpcConversation(conversations, npcId)
-    void performRequest(npcId, trimmed, history, discoveredEvidenceIds, true)
+    void performRequest(
+      npcId, trimmed, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds, true,
+    )
   }, [conversations, performRequest])
 
   const retry = useCallback((npcId: string) => {
     const failed = failedByNpc.current[npcId]
     if (!failed || pendingRef.current[npcId]) return
-    void performRequest(npcId, failed.message, failed.history, failed.discoveredEvidenceIds, false)
+    void performRequest(
+      npcId, failed.message, failed.history, failed.discoveredEvidenceIds, failed.presentedEvidenceIds,
+      failed.discoveredFactIds, failed.discoveredContradictionIds, false,
+    )
   }, [performRequest])
 
   const reset = useCallback(() => {

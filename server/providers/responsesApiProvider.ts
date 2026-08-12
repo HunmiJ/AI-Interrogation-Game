@@ -12,7 +12,7 @@ import type { InterrogateResult } from '../types/agent'
 
 const NpcResponseSchema = z.object({
   reply: z.string().min(1).max(600),
-  emotion: z.enum(['calm', 'nervous', 'defensive', 'evasive', 'angry']),
+  emotion: z.enum(['neutral', 'calm', 'nervous', 'defensive', 'evasive', 'angry']),
   revealedFactIds: z.array(z.string().max(80)).max(8),
   contradictionIds: z.array(z.string().max(80)).max(8),
 })
@@ -25,7 +25,7 @@ const structuredOutputContract = `## RESPONSE FORMAT
 只输出一个 JSON 对象，不要输出 Markdown、代码围栏、解释或其他文字。
 对象必须严格包含以下字段：
 - reply：1—4 句角色实际说的话，字符串
-- emotion：calm、nervous、defensive、evasive、angry 之一
+- emotion：neutral、calm、nervous、defensive、evasive、angry 之一
 - revealedFactIds：本轮实际承认的 fact id 字符串数组，没有则为空数组
 - contradictionIds：本轮新产生或被证据击中的矛盾 id 字符串数组，没有则为空数组`
 
@@ -69,7 +69,7 @@ function defaultErrorLogger(record: ProviderErrorLog) {
 }
 
 function defaultDebugLogger(record: ProviderDebugLog) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.DEBUG_AI_INVESTIGATION === 'true') {
     console.warn('[llm-provider-debug]', JSON.stringify(record))
   }
 }
@@ -185,7 +185,7 @@ function parseNpcResponse(outputText: string, response: OpenAIResponse): Interro
   }
 
   const parsed = NpcResponseSchema.safeParse(decoded)
-  if (parsed.success) return parsed.data
+  if (parsed.success) return { ...parsed.data, unlockedEvidenceIds: [] }
 
   if (decoded && typeof decoded === 'object' && 'reply' in decoded) {
     const reply = (decoded as { reply?: unknown }).reply
@@ -195,6 +195,7 @@ function parseNpcResponse(outputText: string, response: OpenAIResponse): Interro
         emotion: 'neutral',
         revealedFactIds: [],
         contradictionIds: [],
+        unlockedEvidenceIds: [],
       }
     }
   }
@@ -207,6 +208,7 @@ function parseNpcResponse(outputText: string, response: OpenAIResponse): Interro
       emotion: 'neutral',
       revealedFactIds: [],
       contradictionIds: [],
+      unlockedEvidenceIds: [],
     }
   }
 

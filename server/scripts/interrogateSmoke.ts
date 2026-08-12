@@ -9,6 +9,7 @@ const responseSchema = z.object({
   emotion: z.enum(['neutral', 'calm', 'nervous', 'defensive', 'evasive', 'angry']),
   revealedFactIds: z.array(z.string()),
   contradictionIds: z.array(z.string()),
+  unlockedEvidenceIds: z.array(z.string()),
 })
 
 type SmokeResponse = z.infer<typeof responseSchema>
@@ -33,6 +34,8 @@ async function main() {
           message,
           conversationHistory: history,
           discoveredEvidenceIds: [],
+          discoveredFactIds: [],
+          discoveredContradictionIds: [],
         }),
       })
       const body: unknown = await response.json()

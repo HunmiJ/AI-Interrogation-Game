@@ -102,6 +102,7 @@ test('DeepSeek adapter uses stateless ordered history and parses output text JSO
   ])
   assert.equal('previous_response_id' in (requestBody ?? {}), false)
   assert.equal(result.reply, '我没有说谎。')
+  assert.deepEqual(result.unlockedEvidenceIds, [])
 })
 
 test('plain text is returned as a neutral safe fallback when structured parsing fails', async () => {
@@ -117,6 +118,7 @@ test('plain text is returned as a neutral safe fallback when structured parsing 
     emotion: 'neutral',
     revealedFactIds: [],
     contradictionIds: [],
+    unlockedEvidenceIds: [],
   })
 })
 
@@ -161,6 +163,7 @@ test('empty structured output retries once without text.format and returns plain
     emotion: 'neutral',
     revealedFactIds: [],
     contradictionIds: [],
+    unlockedEvidenceIds: [],
   })
 })
 

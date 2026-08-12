@@ -1,4 +1,6 @@
 import type { AgentId } from '../types/agent'
+import { calculateInvestigationScore } from './investigationScore'
+import type { InvestigationScoreInput } from './investigationScore'
 
 const culpritId: AgentId = 'tom'
 
@@ -8,7 +10,8 @@ const names: Record<AgentId, string> = {
   tom: 'Tom',
 }
 
-export function resolveCase(accusedNpcId: AgentId) {
+export function resolveCase(input: InvestigationScoreInput) {
+  const accusedNpcId = input.accusedNpcId
   return {
     correct: accusedNpcId === culpritId,
     accusedName: names[accusedNpcId],
@@ -23,5 +26,6 @@ export function resolveCase(accusedNpcId: AgentId) {
       'Jack 的原片将他定格在 23:09 的办公室门口；Alice 的交通记录则证明后门触发时她已经离开。每个人都撒了谎，但只有一组谎言在掩盖盗窃。',
     ],
     confession: '我只是想填上那个窟窿。等周转过来，我会把钱放回去。',
+    score: calculateInvestigationScore(input),
   }
 }

@@ -4,12 +4,18 @@ import { NPCCard } from './NPCCard'
 import { ChatBox } from './ChatBox'
 import { EvidencePanel } from './EvidencePanel'
 import type { AiConversationMessage, InterrogationUiError } from '../types/interrogation'
+import type { DiscoveryEvent } from '../utils/gameSession'
+import { DiscoveryFeedback } from './DiscoveryFeedback'
 
 interface InterrogationRoomProps {
   selectedNpcId: string
   interviewedNpcIds: string[]
   askedDialogueIds: string[]
   collectedEvidenceIds: string[]
+  discoveredFactIds: string[]
+  discoveredContradictionIds: string[]
+  lastDiscovery: DiscoveryEvent | null
+  questionCount: number
   conversation: AiConversationMessage[]
   isThinking: boolean
   conversationError: InterrogationUiError | null
@@ -22,10 +28,11 @@ interface InterrogationRoomProps {
 
 export function InterrogationRoom(props: InterrogationRoomProps) {
   const npc = npcById[props.selectedNpcId]
-  const canReview = props.askedDialogueIds.length >= 3
+  const canReview = props.questionCount >= 3
 
   return (
     <div className="mx-auto max-w-[1540px] px-4 py-7 lg:px-7 lg:py-8">
+      <DiscoveryFeedback discovery={props.lastDiscovery} />
       <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <div className="eyebrow mb-2"><UsersRound size={13} /> INTERROGATION ROOM / SESSION 01</div>

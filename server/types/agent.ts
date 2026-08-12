@@ -34,6 +34,9 @@ export interface InterrogateInput {
   message: string
   conversationHistory: ConversationTurn[]
   discoveredEvidenceIds: string[]
+  presentedEvidenceIds?: string[]
+  discoveredFactIds: string[]
+  discoveredContradictionIds: string[]
 }
 
 export interface InterrogateResult {
@@ -41,4 +44,6 @@ export interface InterrogateResult {
   emotion: AgentEmotion
   revealedFactIds: string[]
   contradictionIds: string[]
+  unlockedEvidenceIds: string[]
+  presentedEvidenceIds?: string[]
 }

@@ -7,6 +7,8 @@ export interface AiConversationMessage {
   emotion?: AiNpcEmotion
   revealedFactIds?: string[]
   contradictionIds?: string[]
+  unlockedEvidenceIds?: string[]
+  presentedEvidenceIds?: string[]
 }
 
 export interface InterrogateResponse {
@@ -14,6 +16,8 @@ export interface InterrogateResponse {
   emotion: AiNpcEmotion
   revealedFactIds: string[]
   contradictionIds: string[]
+  unlockedEvidenceIds: string[]
+  presentedEvidenceIds: string[]
 }
 
 export interface InterrogationUiError {

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertCircle, Check, CircleDot, FilePlus2, LoaderCircle, MessageSquareText, RefreshCw, Send, Sparkles } from 'lucide-react'
+import { AlertCircle, Check, CircleDot, LoaderCircle, MessageSquareText, RefreshCw, Send, Sparkles } from 'lucide-react'
 import { dialogueOptions, openingLines } from '../data/dialogues'
-import { evidenceById } from '../data/gameData'
-import type { DialogueOption, Evidence, NPC } from '../types/game'
+import type { DialogueOption, NPC } from '../types/game'
 import type { AiConversationMessage, AiNpcEmotion, InterrogationUiError } from '../types/interrogation'
 import { NpcPortrait } from './NPCCard'
 
@@ -31,8 +30,6 @@ const toneLabels: Record<DisplayEmotion, string> = {
 
 export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error, onAsk, onSendMessage, onRetry }: ChatBoxProps) {
   const [input, setInput] = useState('')
-  const [acquiredEvidence, setAcquiredEvidence] = useState<Evidence | null>(null)
-  const toastTimer = useRef<number | null>(null)
   const conversationEnd = useRef<HTMLDivElement | null>(null)
   const options = dialogueOptions.filter((option) => option.npcId === npc.id)
   const askedOptions = options.filter((option) => askedDialogueIds.includes(option.id))
@@ -44,21 +41,11 @@ export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error
   }, [askedOptions.length, conversation.length, isThinking])
 
   useEffect(() => {
-    setAcquiredEvidence(null)
     setInput('')
   }, [npc.id])
 
-  useEffect(() => () => {
-    if (toastTimer.current) window.clearTimeout(toastTimer.current)
-  }, [])
-
   const handlePresetQuestion = (option: DialogueOption) => {
     onAsk(option.id, option.unlockEvidenceId)
-    if (!option.unlockEvidenceId) return
-
-    setAcquiredEvidence(evidenceById[option.unlockEvidenceId])
-    if (toastTimer.current) window.clearTimeout(toastTimer.current)
-    toastTimer.current = window.setTimeout(() => setAcquiredEvidence(null), 3200)
   }
 
   const handleSubmit = () => {
@@ -176,17 +163,6 @@ export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error
           })}
         </div>
       </div>
-
-      {acquiredEvidence && (
-        <div className="evidence-acquired" role="status" aria-live="polite">
-          <div className="evidence-acquired-icon"><FilePlus2 size={18} /></div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-brass">Evidence acquired / 新证据</div>
-            <div className="mt-1 truncate text-sm font-medium text-stone-100">{acquiredEvidence.title}</div>
-            <div className="mt-0.5 truncate text-[10px] text-stone-500">来源：{acquiredEvidence.source}</div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

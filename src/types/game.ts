@@ -53,6 +53,10 @@ export interface Evidence {
   significance: string
   relatedNpcIds: string[]
   isKey: boolean
+  unlockRequirements?: {
+    type: 'fact' | 'contradiction'
+    ids: string[]
+  }
 }
 
 export interface DialogueOption {
@@ -62,6 +66,8 @@ export interface DialogueOption {
   response: string
   tone: 'calm' | 'defensive' | 'evasive' | 'tense'
   unlockEvidenceId?: string
+  revealFactIds?: string[]
+  contradictionIds?: string[]
   followUp: string
 }
 

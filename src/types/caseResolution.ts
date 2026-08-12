@@ -8,4 +8,22 @@ export interface CaseResolution {
   }
   explanation: string[]
   confession: string
+  score: {
+    total: number
+    breakdown: {
+      accusation: ScoreLine
+      evidence: ScoreLine
+      contradictions: ScoreLine
+      efficiency: ScoreLine
+    }
+    discoveredFactCount: number
+    discoveredContradictionCount: number
+    keyEvidenceCount: number
+    missedDirections: string[]
+  }
+}
+
+interface ScoreLine {
+  earned: number
+  maximum: number
 }

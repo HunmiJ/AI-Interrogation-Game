@@ -16,6 +16,9 @@ const requestSchema = z.object({
     content: z.string().trim().min(1).max(800),
   }).strict()).max(30),
   discoveredEvidenceIds: z.array(z.string().min(1).max(80)).max(16),
+  presentedEvidenceIds: z.array(z.string().min(1).max(80)).max(16).default([]),
+  discoveredFactIds: z.array(z.string().min(1).max(80)).max(32).default([]),
+  discoveredContradictionIds: z.array(z.string().min(1).max(80)).max(16).default([]),
 }).strict()
 
 type InterrogateHandler = (input: InterrogateInput) => Promise<InterrogateResult>
@@ -76,12 +79,19 @@ export function createApp(options: { interrogate?: InterrogateHandler } = {}) {
   })
 
   app.post('/api/case/resolve', (request, response) => {
-    const parsed = z.object({ accusedNpcId: z.enum(['jack', 'alice', 'tom']) }).strict().safeParse(request.body)
+    const parsed = z.object({
+      accusedNpcId: z.enum(['jack', 'alice', 'tom']),
+      discoveredEvidenceIds: z.array(z.string().min(1).max(80)).max(16).default([]),
+      discoveredFactIds: z.array(z.string().min(1).max(80)).max(32).default([]),
+      discoveredContradictionIds: z.array(z.string().min(1).max(80)).max(16).default([]),
+      questionCount: z.number().int().min(0).max(500).default(0),
+      interrogatedNpcIds: z.array(z.enum(['jack', 'alice', 'tom'])).max(3).default([]),
+    }).strict().safeParse(request.body)
     if (!parsed.success) {
       response.status(400).json({ error: { code: 'INVALID_ACCUSATION', message: '指认对象无效。', retryable: false } })
       return
     }
-    response.json(resolveCase(parsed.data.accusedNpcId))
+    response.json(resolveCase(parsed.data))
   })
 
   const currentDirectory = path.dirname(fileURLToPath(import.meta.url))

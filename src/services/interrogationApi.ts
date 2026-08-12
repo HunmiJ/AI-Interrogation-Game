@@ -5,6 +5,9 @@ interface InterrogateRequest {
   message: string
   conversationHistory: AiConversationMessage[]
   discoveredEvidenceIds: string[]
+  presentedEvidenceIds: string[]
+  discoveredFactIds: string[]
+  discoveredContradictionIds: string[]
 }
 
 export class InterrogationApiError extends Error implements InterrogationUiError {
@@ -24,6 +27,8 @@ function isInterrogateResponse(value: unknown): value is InterrogateResponse {
     && typeof candidate.emotion === 'string'
     && Array.isArray(candidate.revealedFactIds)
     && Array.isArray(candidate.contradictionIds)
+    && Array.isArray(candidate.unlockedEvidenceIds)
+    && Array.isArray(candidate.presentedEvidenceIds)
 }
 
 export async function requestInterrogation(input: InterrogateRequest): Promise<InterrogateResponse> {
@@ -40,6 +45,9 @@ export async function requestInterrogation(input: InterrogateRequest): Promise<I
         message: input.message,
         conversationHistory: input.conversationHistory.slice(-24).map(({ role, content }) => ({ role, content })),
         discoveredEvidenceIds: input.discoveredEvidenceIds,
+        presentedEvidenceIds: input.presentedEvidenceIds,
+        discoveredFactIds: input.discoveredFactIds,
+        discoveredContradictionIds: input.discoveredContradictionIds,
       }),
     })
 

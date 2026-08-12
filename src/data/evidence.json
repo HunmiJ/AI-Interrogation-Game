@@ -27,7 +27,8 @@
     "source": "Jack 的相机",
     "significance": "直接推翻 Tom 声称当时在楼上打电话的口供。",
     "relatedNpcIds": ["jack", "tom"],
-    "isKey": true
+    "isKey": true,
+    "unlockRequirements": { "type": "fact", "ids": ["jack_went_upstairs"] }
   },
   {
     "id": "camera-metadata",
@@ -37,7 +38,8 @@
     "source": "相机连接记录",
     "significance": "解释了 Jack 的隐瞒，也让他的证词需要谨慎核验。",
     "relatedNpcIds": ["jack"],
-    "isKey": false
+    "isKey": false,
+    "unlockRequirements": { "type": "fact", "ids": ["jack_stayed_after_event"] }
   },
   {
     "id": "key-return-log",
@@ -47,7 +49,8 @@
     "source": "钥匙柜日志",
     "significance": "削弱了 Alice 使用备用钥匙实施盗窃的可能。",
     "relatedNpcIds": ["alice"],
-    "isKey": false
+    "isKey": false,
+    "unlockRequirements": { "type": "fact", "ids": ["alice_returned_spare_key"] }
   },
   {
     "id": "transit-record",
@@ -57,7 +60,8 @@
     "source": "交通卡记录",
     "significance": "她在后门 23:16 被触发时已不在现场。",
     "relatedNpcIds": ["alice"],
-    "isKey": true
+    "isKey": true,
+    "unlockRequirements": { "type": "fact", "ids": ["alice_returned_for_earphones"] }
   },
   {
     "id": "supplier-call-record",
@@ -67,7 +71,8 @@
     "source": "通话详单",
     "significance": "Tom 为案发时段编造了不在场理由。",
     "relatedNpcIds": ["tom"],
-    "isKey": true
+    "isKey": true,
+    "unlockRequirements": { "type": "fact", "ids": ["tom_claimed_supplier_call"] }
   },
   {
     "id": "debt-letter",
@@ -77,6 +82,7 @@
     "source": "员工储物柜",
     "significance": "金额与失窃募款一致，构成明确动机但并非单独定罪证据。",
     "relatedNpcIds": ["tom"],
-    "isKey": true
+    "isKey": true,
+    "unlockRequirements": { "type": "fact", "ids": ["tom_financial_pressure"] }
   }
 ]

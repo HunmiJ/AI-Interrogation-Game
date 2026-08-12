@@ -11,7 +11,7 @@ import { useNpcConversations } from './hooks/useNpcConversations'
 
 export default function App() {
   const { state, actions, stageIndex } = useGameState()
-  const aiConversations = useNpcConversations()
+  const aiConversations = useNpcConversations(actions.recordAiResult)
 
   const restartGame = () => {
     aiConversations.reset()
@@ -20,7 +20,7 @@ export default function App() {
 
   if (state.stage === 'home') return <HomeScreen onStart={() => actions.goTo('briefing')} />
   if (state.stage === 'result' && state.accusedNpcId) {
-    return <GameResult accusedNpcId={state.accusedNpcId} collectedEvidenceIds={state.collectedEvidenceIds} interviewedNpcCount={state.interviewedNpcIds.length} askedCount={state.askedDialogueIds.length} onRestart={restartGame} />
+    return <GameResult accusedNpcId={state.accusedNpcId} collectedEvidenceIds={state.collectedEvidenceIds} discoveredFactIds={state.discoveredFactIds} discoveredContradictionIds={state.discoveredContradictionIds} interviewedNpcIds={state.interviewedNpcIds} questionCount={state.questionCount} onRestart={restartGame} />
   }
 
   const backTargets = {
@@ -46,20 +46,27 @@ export default function App() {
           interviewedNpcIds={state.interviewedNpcIds}
           askedDialogueIds={state.askedDialogueIds}
           collectedEvidenceIds={state.collectedEvidenceIds}
+          discoveredFactIds={state.discoveredFactIds}
+          discoveredContradictionIds={state.discoveredContradictionIds}
+          lastDiscovery={state.lastDiscovery}
+          questionCount={state.questionCount}
           conversation={aiConversations.conversations[state.selectedNpcId] ?? []}
           isThinking={Boolean(aiConversations.pendingByNpc[state.selectedNpcId])}
           conversationError={aiConversations.errorsByNpc[state.selectedNpcId] ?? null}
           onSelectNpc={actions.selectNpc}
-          onAsk={(dialogueId, evidenceId) => {
+          onAsk={(dialogueId) => {
             aiConversations.markPresetFallback()
-            actions.askDialogue(dialogueId, evidenceId)
+            actions.askDialogue(dialogueId)
           }}
-          onSendMessage={(message) => aiConversations.sendMessage(state.selectedNpcId!, message, state.collectedEvidenceIds)}
+          onSendMessage={(message) => aiConversations.sendMessage(
+            state.selectedNpcId!, message, state.collectedEvidenceIds, state.presentedEvidenceIds,
+            state.discoveredFactIds, state.discoveredContradictionIds,
+          )}
           onRetryMessage={() => aiConversations.retry(state.selectedNpcId!)}
           onReview={() => actions.goTo('evidence-review')}
         />
       )}
-      {state.stage === 'evidence-review' && <EvidenceReview collectedEvidenceIds={state.collectedEvidenceIds} interviewedNpcCount={state.interviewedNpcIds.length} onContinue={() => actions.goTo('accusation')} />}
+      {state.stage === 'evidence-review' && <EvidenceReview collectedEvidenceIds={state.collectedEvidenceIds} discoveredFactIds={state.discoveredFactIds} discoveredContradictionIds={state.discoveredContradictionIds} interviewedNpcCount={state.interviewedNpcIds.length} onContinue={() => actions.goTo('accusation')} />}
       {state.stage === 'accusation' && <FinalAccusation selectedNpcId={state.candidateNpcId} onSelect={actions.selectCandidate} onAccuse={actions.accuse} />}
     </GameLayout>
   )

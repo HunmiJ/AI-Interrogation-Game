@@ -14,6 +14,7 @@ test('routes Jack, Alice and Tom as independent NPC requests', async () => {
         emotion: 'calm',
         revealedFactIds: [],
         contradictionIds: [],
+        unlockedEvidenceIds: [],
       }
     },
   })
@@ -38,6 +39,7 @@ test('routes Jack, Alice and Tom as independent NPC requests', async () => {
 
   assert.equal(seen.length, 3)
   assert.deepEqual(seen.map((item) => item.npcId), ['jack', 'alice', 'tom'])
+  assert.ok(seen.every((item) => item.discoveredFactIds.length === 0))
 })
 
 test('returns a safe error payload without an API key', async () => {
@@ -97,12 +99,17 @@ test('rejects invalid or oversized interrogation input', async () => {
 
 test('keeps case resolution on the server and resolves every accusation', async () => {
   const app = createApp()
-  const jack = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'jack' })
-  const alice = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'alice' })
-  const tom = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'tom' })
+  const emptyInvestigation = {
+    discoveredEvidenceIds: [], discoveredFactIds: [], discoveredContradictionIds: [],
+    questionCount: 0, interrogatedNpcIds: [],
+  }
+  const jack = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'jack', ...emptyInvestigation })
+  const alice = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'alice', ...emptyInvestigation })
+  const tom = await request(app).post('/api/case/resolve').send({ accusedNpcId: 'tom', ...emptyInvestigation })
 
   assert.equal(jack.body.correct, false)
   assert.equal(alice.body.correct, false)
   assert.equal(tom.body.correct, true)
   assert.equal(tom.body.culprit.id, 'tom')
+  assert.ok(tom.body.score.total <= 50)
 })
