@@ -9,7 +9,7 @@ export function HomeScreen({ onClassic, onGenerate }: { onClassic: () => void; o
       <nav className="relative z-10 mx-auto flex h-24 max-w-[1440px] items-center justify-between px-6 lg:px-12">
         <Brand />
         <div className="flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-stone-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> V0.5 / Release Candidate
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Online Demo / Live
         </div>
       </nav>
 
@@ -27,7 +27,7 @@ export function HomeScreen({ onClassic, onGenerate }: { onClassic: () => void; o
               <span>经典案件</span><Play size={16} fill="currentColor" className="transition group-hover:translate-x-1" />
             </button>
             <button onClick={onGenerate} className="secondary-button"><Sparkles size={15} /> AI 动态案件</button>
-            <div className="flex items-center gap-2 text-xs text-stone-500"><Headphones size={15} /> 建议佩戴耳机 · 沉浸式体验</div>
+            <div className="flex items-center gap-2 text-xs text-stone-500"><Headphones size={15} /> 细读每一句口供 · 沉浸式推理体验</div>
           </div>
           <div className="mt-16 grid max-w-xl grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
             <LandingStat value="02" label="游戏模式" />
