@@ -30,7 +30,7 @@ export function NPCCard({ npc, selected = false, interviewed = false, onClick, c
     <button type="button" onClick={onClick} aria-pressed={selected} className={`npc-card group ${selected ? 'selected' : ''}`}>
       <div className="relative">
         <NpcPortrait npc={npc} />
-        <div className="subject-index"><ScanFace size={12} /> SUBJECT 0{['jack', 'alice', 'tom'].indexOf(npc.id) + 1}</div>
+        <div className="subject-index"><ScanFace size={12} /> SUBJECT / {npc.initials}</div>
         <span className="subject-status"><span />{npc.status}</span>
         {selected && <div className="selected-ribbon"><Check size={11} /> 已选择</div>}
       </div>

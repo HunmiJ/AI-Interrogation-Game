@@ -1,14 +1,15 @@
 import { ArrowRight, Crosshair, Search, UserRoundSearch } from 'lucide-react'
-import { npcs } from '../data/gameData'
+import type { NPC } from '../types/game'
 import { NPCCard } from './NPCCard'
 
 interface SuspectSelectionProps {
   selectedNpcId: string | null
   onSelect: (npcId: string) => void
   onContinue: () => void
+  npcs: NPC[]
 }
 
-export function SuspectSelection({ selectedNpcId, onSelect, onContinue }: SuspectSelectionProps) {
+export function SuspectSelection({ selectedNpcId, onSelect, onContinue, npcs }: SuspectSelectionProps) {
   const selectedNpc = npcs.find((npc) => npc.id === selectedNpcId)
 
   return (

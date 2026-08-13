@@ -1,7 +1,5 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, FileSearch, Fingerprint, Link2, ShieldQuestion } from 'lucide-react'
-import { evidence, npcById } from '../data/gameData'
-import { notebookContradictionById, notebookFactById } from '../data/investigationNotebook'
-import type { Evidence } from '../types/game'
+import type { Evidence, NotebookContradictionRecord, NotebookFactRecord, NPC } from '../types/game'
 
 const categoryLabels: Record<Evidence['category'], string> = {
   physical: '现场物证', digital: '数字记录', testimony: '人物证词', document: '书面文档',
@@ -13,13 +11,21 @@ interface EvidenceReviewProps {
   discoveredContradictionIds: string[]
   interviewedNpcCount: number
   onContinue: () => void
+  evidence: Evidence[]
+  evidenceTotal: number
+  npcs: NPC[]
+  factRecords: NotebookFactRecord[]
+  contradictionRecords: NotebookContradictionRecord[]
 }
 
-export function EvidenceReview({ collectedEvidenceIds, discoveredFactIds, discoveredContradictionIds, interviewedNpcCount, onContinue }: EvidenceReviewProps) {
+export function EvidenceReview({ collectedEvidenceIds, discoveredFactIds, discoveredContradictionIds, interviewedNpcCount, onContinue, evidence, evidenceTotal, npcs, factRecords, contradictionRecords }: EvidenceReviewProps) {
+  const npcById = Object.fromEntries(npcs.map((item) => [item.id, item]))
+  const notebookFactById = Object.fromEntries(factRecords.map((item) => [item.id, item]))
+  const notebookContradictionById = Object.fromEntries(contradictionRecords.map((item) => [item.id, item]))
   const collected = evidence.filter((item) => collectedEvidenceIds.includes(item.id))
   const facts = discoveredFactIds.map((id) => notebookFactById[id]).filter(Boolean)
   const contradictions = discoveredContradictionIds.map((id) => notebookContradictionById[id]).filter(Boolean)
-  const missingCount = evidence.length - collected.length
+  const missingCount = evidenceTotal - collected.length
 
   return (
     <div className="page-shell">
@@ -32,7 +38,7 @@ export function EvidenceReview({ collectedEvidenceIds, discoveredFactIds, discov
         <div className="flex gap-3">
           <ReviewStat value={facts.length} label="已确认事实" />
           <ReviewStat value={contradictions.length} label="发现矛盾" />
-          <ReviewStat value={collected.length} label="关键证据" />
+          <ReviewStat value={collected.length} label="已获证据" />
         </div>
       </div>
 
@@ -46,15 +52,15 @@ export function EvidenceReview({ collectedEvidenceIds, discoveredFactIds, discov
       </div>
 
       <div className="mb-4 mt-9 flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brass">EVIDENCE / 关键证据</div>
-        <div className="font-mono text-xs text-stone-500">{String(collected.length).padStart(2, '0')} / {String(evidence.length).padStart(2, '0')}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brass">EVIDENCE / 已获证据</div>
+        <div className="font-mono text-xs text-stone-500">{String(collected.length).padStart(2, '0')} / {String(evidenceTotal).padStart(2, '0')}</div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {collected.map((item, index) => (
           <article key={item.id} className="evidence-card group">
             <div className="flex items-center justify-between"><span className="evidence-type">{categoryLabels[item.category]}</span><span className="font-mono text-[10px] text-stone-700">EVIDENCE / {String(index + 1).padStart(2, '0')}</span></div>
             <div className="mt-5 flex items-start gap-4"><div className="rounded-sm border border-brass/20 bg-brass/[0.06] p-2.5 text-brass"><Fingerprint size={19} /></div><div><h3 className="text-base font-semibold text-stone-200">{item.title}</h3><p className="mt-2 text-xs leading-6 text-stone-500">{item.description}</p></div></div>
-            <div className="mt-5 border-t border-white/[0.07] pt-4"><div className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-stone-700"><Link2 size={11} /> 关联对象</div><div className="mt-2 flex flex-wrap gap-2">{item.relatedNpcIds.map((id) => <span key={id} className="trait">{npcById[id].name}</span>)}</div></div>
+            <div className="mt-5 border-t border-white/[0.07] pt-4"><div className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-stone-700"><Link2 size={11} /> 关联对象</div><div className="mt-2 flex flex-wrap gap-2">{item.relatedNpcIds.map((id) => <span key={id} className="trait">{npcById[id]?.name ?? id}</span>)}</div></div>
             <div className="mt-4 flex items-start gap-2 bg-black/20 p-3 text-[11px] leading-5 text-stone-400"><CheckCircle2 size={13} className="mt-0.5 shrink-0 text-brass/70" /> {item.significance}</div>
           </article>
         ))}

@@ -5,6 +5,7 @@ import { appendNpcMessage, getNpcConversation } from '../utils/conversationState
 import type { InvestigationUpdate } from '../utils/investigationRules'
 
 interface FailedRequest {
+  caseSessionId?: string
   message: string
   history: AiConversationMessage[]
   discoveredEvidenceIds: string[]
@@ -70,6 +71,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
 
   const performRequest = useCallback(async (
     npcId: string,
+    caseSessionId: string | undefined,
     message: string,
     history: AiConversationMessage[],
     discoveredEvidenceIds: string[],
@@ -90,6 +92,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
 
     try {
       const result = await requestInterrogation({
+        caseSessionId,
         npcId,
         message,
         conversationHistory: history,
@@ -117,7 +120,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
         ? error
         : new InterrogationApiError('UNKNOWN_ERROR', 'AI 审讯暂时不可用。', true)
       failedByNpc.current[npcId] = {
-        message, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds,
+        caseSessionId, message, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds,
       }
       setErrorsByNpc((current) => ({
         ...current,
@@ -132,6 +135,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
 
   const sendMessage = useCallback((
     npcId: string,
+    caseSessionId: string | undefined,
     message: string,
     discoveredEvidenceIds: string[],
     presentedEvidenceIds: string[],
@@ -142,7 +146,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
     if (!trimmed || trimmed.length > 500 || pendingRef.current[npcId]) return
     const history = getNpcConversation(conversations, npcId)
     void performRequest(
-      npcId, trimmed, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds, true,
+      npcId, caseSessionId, trimmed, history, discoveredEvidenceIds, presentedEvidenceIds, discoveredFactIds, discoveredContradictionIds, true,
     )
   }, [conversations, performRequest])
 
@@ -150,7 +154,7 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
     const failed = failedByNpc.current[npcId]
     if (!failed || pendingRef.current[npcId]) return
     void performRequest(
-      npcId, failed.message, failed.history, failed.discoveredEvidenceIds, failed.presentedEvidenceIds,
+      npcId, failed.caseSessionId, failed.message, failed.history, failed.discoveredEvidenceIds, failed.presentedEvidenceIds,
       failed.discoveredFactIds, failed.discoveredContradictionIds, false,
     )
   }, [performRequest])

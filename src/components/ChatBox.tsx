@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertCircle, Check, CircleDot, LoaderCircle, MessageSquareText, RefreshCw, Send, Sparkles } from 'lucide-react'
-import { dialogueOptions, openingLines } from '../data/dialogues'
 import type { DialogueOption, NPC } from '../types/game'
 import type { AiConversationMessage, AiNpcEmotion, InterrogationUiError } from '../types/interrogation'
 import { NpcPortrait } from './NPCCard'
@@ -14,6 +13,8 @@ interface ChatBoxProps {
   onAsk: (dialogueId: string, evidenceId?: string) => void
   onSendMessage: (message: string) => void
   onRetry: () => void
+  dialogueOptions: DialogueOption[]
+  openingLine: string
 }
 
 type DisplayEmotion = DialogueOption['tone'] | AiNpcEmotion
@@ -28,7 +29,7 @@ const toneLabels: Record<DisplayEmotion, string> = {
   tense: '紧绷',
 }
 
-export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error, onAsk, onSendMessage, onRetry }: ChatBoxProps) {
+export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error, onAsk, onSendMessage, onRetry, dialogueOptions, openingLine }: ChatBoxProps) {
   const [input, setInput] = useState('')
   const conversationEnd = useRef<HTMLDivElement | null>(null)
   const options = dialogueOptions.filter((option) => option.npcId === npc.id)
@@ -45,7 +46,8 @@ export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error
   }, [npc.id])
 
   const handlePresetQuestion = (option: DialogueOption) => {
-    onAsk(option.id, option.unlockEvidenceId)
+    if (option.response) onAsk(option.id, option.unlockEvidenceId)
+    else onSendMessage(option.question)
   }
 
   const handleSubmit = () => {
@@ -74,16 +76,16 @@ export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error
 
       <div className="conversation-area flex-1 space-y-6 overflow-y-auto p-5 md:p-7 lg:p-8">
         <div className="recording-divider"><span>REC 00:00</span><i /><span>ROOM B</span></div>
-        <NpcMessage npc={npc} content={openingLines[npc.id]} />
+        <NpcMessage npc={npc} content={openingLine} />
 
         {askedOptions.map((option) => (
           <div key={option.id} className="conversation-exchange">
             <InvestigatorMessage content={option.question} />
-            <NpcMessage npc={npc} content={option.response} tone={option.tone} />
-            <div className="intel-note ml-12">
+            {option.response && <NpcMessage npc={npc} content={option.response} tone={option.tone} />}
+            {option.followUp && <div className="intel-note ml-12">
               <Sparkles size={13} />
               <div><span>调查笔记</span><p>{option.followUp}</p></div>
-            </div>
+            </div>}
           </div>
         ))}
 
@@ -153,7 +155,7 @@ export function ChatBox({ npc, askedDialogueIds, conversation, isThinking, error
         </div>
         <div className="grid gap-2">
           {options.map((option) => {
-            const asked = askedDialogueIds.includes(option.id)
+            const asked = Boolean(option.response) && askedDialogueIds.includes(option.id)
             return (
               <button type="button" key={option.id} disabled={asked} onClick={() => handlePresetQuestion(option)} className="question-option group">
                 <span className="text-left">{option.question}</span>

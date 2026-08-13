@@ -1,5 +1,5 @@
 import { ArrowRight, CircleAlert, Radio, UsersRound } from 'lucide-react'
-import { npcs, npcById } from '../data/gameData'
+import type { DialogueOption, Evidence, NotebookContradictionRecord, NotebookFactRecord, NPC, RuntimeCaseData } from '../types/game'
 import { NPCCard } from './NPCCard'
 import { ChatBox } from './ChatBox'
 import { EvidencePanel } from './EvidencePanel'
@@ -24,15 +24,23 @@ interface InterrogationRoomProps {
   onSendMessage: (message: string) => void
   onRetryMessage: () => void
   onReview: () => void
+  npcs: NPC[]
+  evidence: Evidence[]
+  evidenceTotal: number
+  dialogueOptions: DialogueOption[]
+  openingLines: Record<string, string>
+  facts: NotebookFactRecord[]
+  contradictions: NotebookContradictionRecord[]
+  runtimeCase: RuntimeCaseData
 }
 
 export function InterrogationRoom(props: InterrogationRoomProps) {
-  const npc = npcById[props.selectedNpcId]
+  const npc = props.npcs.find((item) => item.id === props.selectedNpcId)!
   const canReview = props.questionCount >= 3
 
   return (
     <div className="mx-auto max-w-[1540px] px-4 py-7 lg:px-7 lg:py-8">
-      <DiscoveryFeedback discovery={props.lastDiscovery} />
+      <DiscoveryFeedback discovery={props.lastDiscovery} runtimeCase={props.runtimeCase} />
       <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <div className="eyebrow mb-2"><UsersRound size={13} /> INTERROGATION ROOM / SESSION 01</div>
@@ -57,13 +65,13 @@ export function InterrogationRoom(props: InterrogationRoomProps) {
             <Radio size={13} className="hidden text-red-500/70 lg:block" />
           </div>
           <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
-            {npcs.map((item) => (
+            {props.npcs.map((item) => (
               <NPCCard key={item.id} npc={item} compact selected={item.id === npc.id} interviewed={props.interviewedNpcIds.includes(item.id)} onClick={() => props.onSelectNpc(item.id)} />
             ))}
           </div>
           <div className="rail-progress hidden lg:block">
-            <div className="flex items-center justify-between"><span>审讯进度</span><b>{props.interviewedNpcIds.length} / {npcs.length}</b></div>
-            <div><i style={{ width: `${(props.interviewedNpcIds.length / npcs.length) * 100}%` }} /></div>
+            <div className="flex items-center justify-between"><span>审讯进度</span><b>{props.interviewedNpcIds.length} / {props.npcs.length}</b></div>
+            <div><i style={{ width: `${(props.interviewedNpcIds.length / props.npcs.length) * 100}%` }} /></div>
             <p>切换人物不会丢失已完成的对话和证据。</p>
           </div>
         </aside>
@@ -77,8 +85,10 @@ export function InterrogationRoom(props: InterrogationRoomProps) {
           onAsk={props.onAsk}
           onSendMessage={props.onSendMessage}
           onRetry={props.onRetryMessage}
+          dialogueOptions={props.dialogueOptions}
+          openingLine={props.openingLines[npc.id] ?? '请问吧，我会回答我知道的事情。'}
         />
-        <div className="hidden xl:block"><EvidencePanel collectedEvidenceIds={props.collectedEvidenceIds} /></div>
+        <div className="hidden xl:block"><EvidencePanel evidence={props.evidence} evidenceTotal={props.evidenceTotal} collectedEvidenceIds={props.collectedEvidenceIds} /></div>
       </div>
     </div>
   )

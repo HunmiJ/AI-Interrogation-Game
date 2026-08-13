@@ -1,6 +1,7 @@
 import type { AiConversationMessage, InterrogateResponse, InterrogationUiError } from '../types/interrogation'
 
 interface InterrogateRequest {
+  caseSessionId?: string
   npcId: string
   message: string
   conversationHistory: AiConversationMessage[]
@@ -29,11 +30,14 @@ function isInterrogateResponse(value: unknown): value is InterrogateResponse {
     && Array.isArray(candidate.contradictionIds)
     && Array.isArray(candidate.unlockedEvidenceIds)
     && Array.isArray(candidate.presentedEvidenceIds)
+    && (candidate.factRecords === undefined || Array.isArray(candidate.factRecords))
+    && (candidate.contradictionRecords === undefined || Array.isArray(candidate.contradictionRecords))
+    && (candidate.evidenceRecords === undefined || Array.isArray(candidate.evidenceRecords))
 }
 
 export async function requestInterrogation(input: InterrogateRequest): Promise<InterrogateResponse> {
   const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), 22_000)
+  const timeout = window.setTimeout(() => controller.abort(), 65_000)
 
   try {
     const response = await fetch('/api/interrogate', {
@@ -41,6 +45,7 @@ export async function requestInterrogation(input: InterrogateRequest): Promise<I
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
+        caseSessionId: input.caseSessionId,
         npcId: input.npcId,
         message: input.message,
         conversationHistory: input.conversationHistory.slice(-24).map(({ role, content }) => ({ role, content })),

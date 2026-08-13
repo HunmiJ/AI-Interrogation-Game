@@ -1,4 +1,4 @@
-export type AgentId = 'jack' | 'alice' | 'tom'
+export type AgentId = string
 
 export type AgentEmotion = 'neutral' | 'calm' | 'nervous' | 'defensive' | 'evasive' | 'angry'
 
@@ -30,6 +30,7 @@ export interface ConversationTurn {
 }
 
 export interface InterrogateInput {
+  caseSessionId?: string
   npcId: AgentId
   message: string
   conversationHistory: ConversationTurn[]
@@ -46,4 +47,7 @@ export interface InterrogateResult {
   contradictionIds: string[]
   unlockedEvidenceIds: string[]
   presentedEvidenceIds?: string[]
+  factRecords?: Array<{ id: string; title: string; description: string; npcId: string }>
+  contradictionRecords?: Array<{ id: string; title: string; description: string; npcId: string; scoreValue: number }>
+  evidenceRecords?: Array<{ id: string; title: string; description: string; category: string; source: string; significance: string; relatedNpcIds: string[]; isKey: boolean }>
 }

@@ -1,6 +1,6 @@
-import type { AgentId, AgentProfile } from '../types/agent'
+import type { AgentProfile } from '../types/agent'
 
-export const agentProfiles: Record<AgentId, AgentProfile> = {
+export const agentProfiles: Record<string, AgentProfile> = {
   jack: {
     id: 'jack',
     name: 'Jack',
@@ -138,5 +138,5 @@ export const agentProfiles: Record<AgentId, AgentProfile> = {
 }
 
 export function getAgentProfile(id: string): AgentProfile | undefined {
-  return agentProfiles[id as AgentId]
+  return agentProfiles[id]
 }

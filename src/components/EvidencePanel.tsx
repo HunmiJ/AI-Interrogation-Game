@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, FileCheck2, LockKeyhole } from 'lucide-react'
-import { evidence } from '../data/gameData'
 import type { Evidence } from '../types/game'
 
 const categoryLabels: Record<Evidence['category'], string> = {
   physical: '物证', digital: '数字', testimony: '证词', document: '文档',
 }
 
-export function EvidencePanel({ collectedEvidenceIds }: { collectedEvidenceIds: string[] }) {
+export function EvidencePanel({ collectedEvidenceIds, evidence, evidenceTotal = evidence.length }: { collectedEvidenceIds: string[]; evidence: Evidence[]; evidenceTotal?: number }) {
   const [recentId, setRecentId] = useState<string | null>(null)
   const previousIds = useRef(collectedEvidenceIds)
   const recentTimer = useRef<number | null>(null)
@@ -35,9 +34,9 @@ export function EvidencePanel({ collectedEvidenceIds }: { collectedEvidenceIds: 
             <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-stone-200"><FileCheck2 size={16} className="text-brass" /> 证据袋</div>
             <div className="mt-1.5 text-[9px] uppercase tracking-[0.18em] text-stone-600">Case evidence archive</div>
           </div>
-          <span className="evidence-counter">{String(collected.length).padStart(2, '0')}<i />{String(evidence.length).padStart(2, '0')}</span>
+          <span className="evidence-counter">{String(collected.length).padStart(2, '0')}<i />{String(evidenceTotal).padStart(2, '0')}</span>
         </div>
-        <div className="mt-4 h-[3px] overflow-hidden bg-white/[0.06]"><div className="h-full bg-brass transition-all duration-300" style={{ width: `${(collected.length / evidence.length) * 100}%` }} /></div>
+        <div className="mt-4 h-[3px] overflow-hidden bg-white/[0.06]"><div className="h-full bg-brass transition-all duration-300" style={{ width: `${(collected.length / evidenceTotal) * 100}%` }} /></div>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
@@ -57,8 +56,8 @@ export function EvidencePanel({ collectedEvidenceIds }: { collectedEvidenceIds: 
             </article>
           )
         })}
-        {evidence.length > collected.length && (
-          <div className="evidence-locked"><LockKeyhole size={14} /><span>仍有 {evidence.length - collected.length} 份证据未发现</span></div>
+        {evidenceTotal > collected.length && (
+          <div className="evidence-locked"><LockKeyhole size={14} /><span>仍有 {evidenceTotal - collected.length} 份证据未发现</span></div>
         )}
       </div>
     </aside>

@@ -18,6 +18,9 @@ export interface InterrogateResponse {
   contradictionIds: string[]
   unlockedEvidenceIds: string[]
   presentedEvidenceIds: string[]
+  factRecords?: import('./game').NotebookFactRecord[]
+  contradictionRecords?: import('./game').NotebookContradictionRecord[]
+  evidenceRecords?: import('./game').Evidence[]
 }
 
 export interface InterrogationUiError {
