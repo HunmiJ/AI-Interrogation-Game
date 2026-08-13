@@ -4,6 +4,12 @@ An AI-native investigation game where expressive NPC conversations are governed 
 
 > V0.5 Release Candidate · Classic Case + validated Dynamic Cases · React/TypeScript/Express
 
+## Play online
+
+Try the public demo: [AI Interrogation Game](https://ai-interrogation-game-3dto.onrender.com)
+
+> The free demo may take about a minute to wake after a period of inactivity.
+
 ## Project overview
 
 AI Interrogation Game puts the player in a sealed investigation. Interview three suspects, compare testimony with evidence, expose contradictions, and submit a final accusation. The game supports a handcrafted Classic Case and AI-generated Dynamic Cases across theft, data leak, fraud, and item-swap scenarios.
