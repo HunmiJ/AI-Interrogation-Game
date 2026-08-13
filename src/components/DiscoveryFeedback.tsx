@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle2, FilePlus2 } from 'lucide-react'
 import type { DiscoveryEvent } from '../utils/gameSession'
-import { evidenceById } from '../data/gameData'
-import { notebookContradictionById, notebookFactById } from '../data/investigationNotebook'
+import type { RuntimeCaseData } from '../types/game'
 
-export function DiscoveryFeedback({ discovery }: { discovery: DiscoveryEvent | null }) {
+export function DiscoveryFeedback({ discovery, runtimeCase }: { discovery: DiscoveryEvent | null; runtimeCase: RuntimeCaseData }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -18,13 +17,13 @@ export function DiscoveryFeedback({ discovery }: { discovery: DiscoveryEvent | n
   return (
     <div className="fixed right-5 top-20 z-50 w-[min(360px,calc(100vw-2.5rem))] space-y-2" role="status" aria-live="polite">
       {discovery.revealedFactIds.map((id) => (
-        <Feedback key={id} icon={<CheckCircle2 size={16} />} label="NEW FACT DISCOVERED" title={notebookFactById[id]?.title ?? id} tone="fact" />
+        <Feedback key={id} icon={<CheckCircle2 size={16} />} label="NEW FACT DISCOVERED" title={runtimeCase.facts.find((item) => item.id === id)?.title ?? id} tone="fact" />
       ))}
       {discovery.contradictionIds.map((id) => (
-        <Feedback key={id} icon={<AlertTriangle size={16} />} label="CONTRADICTION DETECTED" title={notebookContradictionById[id]?.title ?? id} tone="contradiction" />
+        <Feedback key={id} icon={<AlertTriangle size={16} />} label="CONTRADICTION DETECTED" title={runtimeCase.contradictions.find((item) => item.id === id)?.title ?? id} tone="contradiction" />
       ))}
       {discovery.unlockedEvidenceIds.map((id) => (
-        <Feedback key={id} icon={<FilePlus2 size={16} />} label="EVIDENCE ACQUIRED" title={evidenceById[id]?.title ?? id} tone="evidence" />
+        <Feedback key={id} icon={<FilePlus2 size={16} />} label="EVIDENCE ACQUIRED" title={runtimeCase.evidence.find((item) => item.id === id)?.title ?? id} tone="evidence" />
       ))}
     </div>
   )

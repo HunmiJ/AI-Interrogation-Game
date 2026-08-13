@@ -243,3 +243,49 @@ test('HTTP failures log status and provider code while redacting credentials', a
   assert.match(records[0]?.errorMessage ?? '', /\[REDACTED\]/)
   assert.doesNotMatch(records[0]?.errorMessage ?? '', /sk-secretvalue123456/)
 })
+
+test('case generation uses the isolated Chat Completions JSON Output adapter', async () => {
+  let requestedUrl = ''
+  let requestBody: Record<string, unknown> = {}
+  const provider = createProvider(async (input, init) => {
+    requestedUrl = String(input)
+    requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>
+    return new Response(JSON.stringify({
+      id: 'chat_case_test',
+      object: 'chat.completion',
+      model: 'deepseek-v4-flash',
+      choices: [{
+        index: 0,
+        finish_reason: 'stop',
+        message: { role: 'assistant', content: '{"case":"ok"}', reasoning_content: null },
+        logprobs: null,
+      }],
+      usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+    }), { status: 200, headers: { 'content-type': 'application/json' } })
+  })
+  const result = await provider.generateStructuredJson({ instructions: 'Output JSON only.', message: 'Generate JSON.', maxOutputTokens: 8000 })
+  assert.equal(requestedUrl, 'https://api.deepseek.com/chat/completions')
+  assert.deepEqual(requestBody.response_format, { type: 'json_object' })
+  assert.deepEqual(requestBody.thinking, { type: 'disabled' })
+  assert.equal(requestBody.max_tokens, 8000)
+  assert.equal(result.text, '{"case":"ok"}')
+  assert.equal(result.finishReason, 'stop')
+})
+
+test('case generation exposes finish_reason length for generator-level retry and truncation reporting', async () => {
+  const provider = createProvider(async () => new Response(JSON.stringify({
+    id: 'chat_case_truncated',
+    object: 'chat.completion',
+    model: 'deepseek-v4-flash',
+    choices: [{
+      index: 0,
+      finish_reason: 'length',
+      message: { role: 'assistant', content: '{"case":', reasoning_content: null },
+      logprobs: null,
+    }],
+    usage: { prompt_tokens: 1, completion_tokens: 8000, total_tokens: 8001 },
+  }), { status: 200, headers: { 'content-type': 'application/json' } }))
+  const result = await provider.generateStructuredJson({ instructions: 'Output JSON.', message: 'Generate JSON.', maxOutputTokens: 8000 })
+  assert.equal(result.finishReason, 'length')
+  assert.equal(result.text, '{"case":')
+})

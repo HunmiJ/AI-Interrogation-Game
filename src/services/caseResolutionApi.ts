@@ -1,6 +1,7 @@
 import type { CaseResolution } from '../types/caseResolution'
 
 export interface CaseResolutionRequest {
+  caseSessionId?: string
   accusedNpcId: string
   discoveredEvidenceIds: string[]
   discoveredFactIds: string[]

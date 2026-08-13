@@ -2,7 +2,7 @@
 
 一个以自由审讯、角色一致性和证据推理为核心的 AI Native 网页游戏。玩家作为调查员，需要调查《午夜咖啡馆失窃案》，审讯 Jack、Alice 和 Tom，确认事实、出示证据、识别口供矛盾，最终指认真正的盗窃者。
 
-当前版本为 **V0.3 AI-driven Investigation System**。项目同时保留完整的离线可玩流程，LLM 不可用时仍可通过预设审讯推进游戏。
+当前稳定版本为 **V0.3 AI-driven Investigation System**，正在开发 **V0.4 Dynamic Case System**。V0.4 在保留经典案件的基础上，引入经过确定性结构、质量与可解性验证的 AI 动态案件生成；该阶段尚未封版。
 
 ## 核心玩法
 
@@ -180,3 +180,4 @@ npm run smoke:v03:contradiction    # 真实 Tom pacing/contradiction 测试
 - **V0.1.1** — UI/UX Polish
 - **V0.2** — Live AI NPC Interrogation
 - **V0.3** — AI-driven Investigation System
+- **V0.4（开发中）** — Dynamic Case System

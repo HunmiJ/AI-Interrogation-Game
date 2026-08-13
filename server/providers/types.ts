@@ -23,6 +23,17 @@ export interface GenerateTextInput {
   maxOutputTokens?: number
 }
 
+export interface GenerateStructuredJsonInput {
+  instructions: string
+  message: string
+  maxOutputTokens?: number
+}
+
+export interface StructuredJsonOutput {
+  text: string
+  finishReason: string | null
+}
+
 export interface LlmProvider {
   readonly name: LlmProviderName
   readonly model: string
@@ -30,4 +41,5 @@ export interface LlmProvider {
   readonly apiFormat: 'responses'
   generateNpcResponse(input: GenerateNpcResponseInput): Promise<InterrogateResult>
   generateText(input: GenerateTextInput): Promise<string>
+  generateStructuredJson(input: GenerateStructuredJsonInput): Promise<StructuredJsonOutput>
 }

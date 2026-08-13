@@ -1,5 +1,6 @@
 export type GameStage =
   | 'home'
+  | 'case-generation'
   | 'briefing'
   | 'suspect-selection'
   | 'interrogation'
@@ -42,6 +43,30 @@ export interface NPC {
   initials: string
 }
 
+export interface NotebookFactRecord {
+  id: string
+  title: string
+  description: string
+  npcId: string
+}
+
+export interface NotebookContradictionRecord extends NotebookFactRecord {
+  scoreValue: number
+}
+
+export interface RuntimeCaseData {
+  mode: 'classic' | 'dynamic'
+  sessionId?: string
+  case: CaseData
+  npcs: NPC[]
+  evidence: Evidence[]
+  dialogueOptions: DialogueOption[]
+  openingLines: Record<string, string>
+  facts: NotebookFactRecord[]
+  contradictions: NotebookContradictionRecord[]
+  evidenceTotal: number
+}
+
 export type EvidenceCategory = 'physical' | 'digital' | 'testimony' | 'document'
 
 export interface Evidence {
@@ -63,12 +88,12 @@ export interface DialogueOption {
   id: string
   npcId: string
   question: string
-  response: string
+  response?: string
   tone: 'calm' | 'defensive' | 'evasive' | 'tense'
   unlockEvidenceId?: string
   revealFactIds?: string[]
   contradictionIds?: string[]
-  followUp: string
+  followUp?: string
 }
 
 export interface ChatMessage {

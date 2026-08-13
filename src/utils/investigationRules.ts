@@ -1,11 +1,14 @@
-import { evidence } from '../data/gameData'
-import { notebookContradictionById, notebookFactById } from '../data/investigationNotebook'
+import { classicRuntimeCase } from '../data/gameData'
+import type { RuntimeCaseData } from '../types/game'
 
 export interface InvestigationUpdate {
   revealedFactIds: string[]
   contradictionIds: string[]
   unlockedEvidenceIds: string[]
   presentedEvidenceIds?: string[]
+  factRecords?: import('../types/game').NotebookFactRecord[]
+  contradictionRecords?: import('../types/game').NotebookContradictionRecord[]
+  evidenceRecords?: import('../types/game').Evidence[]
 }
 
 export function resolveTrustedPresetUpdate(
@@ -14,21 +17,28 @@ export function resolveTrustedPresetUpdate(
   discoveredFactIds: string[],
   discoveredContradictionIds: string[],
   discoveredEvidenceIds: string[],
+  runtimeCase: RuntimeCaseData = classicRuntimeCase,
 ): InvestigationUpdate {
+  const factById = Object.fromEntries(runtimeCase.facts.map((item) => [item.id, item]))
+  const contradictionById = Object.fromEntries(runtimeCase.contradictions.map((item) => [item.id, item]))
   const factSet = new Set(discoveredFactIds)
   const contradictionSet = new Set(discoveredContradictionIds)
   const evidenceSet = new Set(discoveredEvidenceIds)
   const revealedFactIds = [...new Set(suggestedFactIds)]
-    .filter((id) => notebookFactById[id] && !factSet.has(id))
+    .filter((id) => factById[id] && !factSet.has(id))
   revealedFactIds.forEach((id) => factSet.add(id))
 
-  const unlockedEvidenceIds = evidence
-    .filter((item) => !evidenceSet.has(item.id) && item.unlockRequirements?.type === 'fact')
-    .filter((item) => item.unlockRequirements?.ids.every((id) => factSet.has(id)))
+  const unlockedEvidenceIds = runtimeCase.evidence
+    .filter((item) => !evidenceSet.has(item.id))
+    .filter((item) => {
+      const rule = runtimeCase.mode === 'classic' ? item.unlockRequirements : undefined
+      if (rule?.type === 'fact') return rule.ids.every((id) => factSet.has(id))
+      return false
+    })
     .map((item) => item.id)
 
   const contradictionIds = [...new Set(suggestedContradictionIds)].filter((id) => {
-    const item = notebookContradictionById[id]
+    const item = contradictionById[id]
     if (!item || contradictionSet.has(id)) return false
     const factReady = item.id === 'jack_exit_time_conflict'
       ? ['jack_stayed_after_event', 'jack_went_upstairs'].every((factId) => factSet.has(factId))

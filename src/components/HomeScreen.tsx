@@ -1,15 +1,15 @@
-import { ArrowUpRight, Clock3, Fingerprint, Headphones, Play, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Clock3, Fingerprint, Headphones, Play, ShieldCheck, Sparkles } from 'lucide-react'
 import { Brand } from './Brand'
 import { gameCase } from '../data/gameData'
 
-export function HomeScreen({ onStart }: { onStart: () => void }) {
+export function HomeScreen({ onClassic, onGenerate }: { onClassic: () => void; onGenerate: () => void }) {
   return (
     <main className="landing min-h-screen overflow-hidden bg-ink text-stone-100">
       <div className="landing-glow" />
       <nav className="relative z-10 mx-auto flex h-24 max-w-[1440px] items-center justify-between px-6 lg:px-12">
         <Brand />
         <div className="flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.025] px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-stone-500">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> V0.1 / Offline
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> V0.4 / Dynamic Cases
         </div>
       </nav>
 
@@ -23,9 +23,10 @@ export function HomeScreen({ onStart }: { onStart: () => void }) {
             进入封锁现场，审讯每一位嫌疑人。听见他们说了什么，更要留意他们避而不谈的部分。
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <button onClick={onStart} className="primary-button group">
-              <span>开始调查</span><Play size={16} fill="currentColor" className="transition group-hover:translate-x-1" />
+            <button onClick={onClassic} className="primary-button group">
+              <span>经典案件</span><Play size={16} fill="currentColor" className="transition group-hover:translate-x-1" />
             </button>
+            <button onClick={onGenerate} className="secondary-button"><Sparkles size={15} /> AI 动态案件</button>
             <div className="flex items-center gap-2 text-xs text-stone-500"><Headphones size={15} /> 建议佩戴耳机 · 沉浸式体验</div>
           </div>
           <div className="mt-16 grid max-w-xl grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
@@ -58,7 +59,7 @@ export function HomeScreen({ onStart }: { onStart: () => void }) {
               <div className="flex -space-x-2">
                 {['JK', 'AL', 'TM'].map((item, index) => <span key={item} className="suspect-mini" style={{ zIndex: 3 - index }}>{item}</span>)}
               </div>
-              <button onClick={onStart} className="flex items-center gap-2 text-xs font-bold tracking-wider text-black/65 hover:text-black">查看档案 <ArrowUpRight size={14} /></button>
+              <button onClick={onClassic} className="flex items-center gap-2 text-xs font-bold tracking-wider text-black/65 hover:text-black">Classic Case <ArrowUpRight size={14} /></button>
             </div>
           </article>
           <div className="coffee-ring" aria-hidden="true" />

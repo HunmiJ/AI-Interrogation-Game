@@ -7,25 +7,11 @@ import { markLlmLive, markLlmOffline } from './llmRuntimeStatus'
 import { validateInvestigationSuggestions } from '../data/investigationRules'
 import { extractSemanticFactCandidates, getTurnDisclosureDirective, isFinancialInquiry } from './investigationCandidateExtractor'
 import { detectPresentedEvidenceIds } from './evidencePresentation'
+import { interrogateDynamicNpc } from '../dynamicCases/dynamicInterrogation'
+import { cleanNpcReply } from './replyCleaning'
+import { InterrogationError } from './interrogationError'
 
-export class InterrogationError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-    public readonly status: number,
-    public readonly retryable: boolean,
-  ) {
-    super(message)
-  }
-}
-
-function cleanReply(reply: string) {
-  return reply
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/^[-*]\s+/gm, '')
-    .trim()
-}
+export { InterrogationError } from './interrogationError'
 
 function logInvestigationTrace(stage: string, details: Record<string, unknown>) {
   if (process.env.DEBUG_AI_INVESTIGATION !== 'true') return
@@ -33,6 +19,7 @@ function logInvestigationTrace(stage: string, details: Record<string, unknown>) 
 }
 
 export async function interrogateNpc(input: InterrogateInput): Promise<InterrogateResult> {
+  if (input.caseSessionId) return interrogateDynamicNpc(input)
   const profile = getAgentProfile(input.npcId)
   if (!profile) {
     throw new InterrogationError('NPC_NOT_FOUND', '没有找到这名审讯对象。', 404, false)
@@ -122,7 +109,7 @@ export async function interrogateNpc(input: InterrogateInput): Promise<Interroga
     })
 
     return {
-      reply: cleanReply(parsed.reply),
+      reply: cleanNpcReply(parsed.reply),
       emotion: parsed.emotion,
       revealedFactIds: validation.acceptedFactIds,
       contradictionIds: validation.acceptedContradictionIds,

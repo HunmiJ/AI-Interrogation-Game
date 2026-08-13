@@ -1,7 +1,7 @@
 import { ArrowRight, Clock3, FileText, MapPin, PackageOpen, Target } from 'lucide-react'
-import { gameCase } from '../data/gameData'
+import type { CaseData } from '../types/game'
 
-export function CaseBriefing({ onContinue }: { onContinue: () => void }) {
+export function CaseBriefing({ caseData: gameCase, onContinue }: { caseData: CaseData; onContinue: () => void }) {
   return (
     <div className="page-shell">
       <div className="mb-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">

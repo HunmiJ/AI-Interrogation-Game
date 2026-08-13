@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { ProviderRequestError } from './errors'
 import type {
   GenerateNpcResponseInput,
+  GenerateStructuredJsonInput,
   GenerateTextInput,
   LlmProvider,
   LlmProviderConfig,
@@ -388,6 +389,31 @@ export class ResponsesApiProvider implements LlmProvider {
         )
       }
       return outputText
+    } catch (error) {
+      this.throwLoggedError(error)
+    }
+  }
+
+  async generateStructuredJson(input: GenerateStructuredJsonInput) {
+    try {
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        messages: [
+          { role: 'system', content: input.instructions },
+          { role: 'user', content: input.message },
+        ],
+        response_format: { type: 'json_object' },
+        max_tokens: input.maxOutputTokens ?? 8_000,
+        temperature: 0.2,
+        ...(this.name === 'deepseek' ? { thinking: { type: 'disabled' } } : {}),
+      })
+      const choice = response.choices[0]
+      const content = choice?.message?.content?.trim() ?? ''
+      if (choice?.finish_reason === 'length') return { text: content, finishReason: 'length' }
+      if (!content) {
+        return { text: '', finishReason: choice?.finish_reason ?? null }
+      }
+      return { text: content, finishReason: choice?.finish_reason ?? null }
     } catch (error) {
       this.throwLoggedError(error)
     }

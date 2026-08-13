@@ -14,6 +14,8 @@
     "smoke:interrogate": "tsx server/scripts/interrogateSmoke.ts",
     "smoke:v03": "tsx server/scripts/v03InvestigationSmoke.ts",
     "smoke:v03:contradiction": "tsx server/scripts/v03ContradictionSmoke.ts",
+    "smoke:v04:generation": "tsx server/scripts/v04CaseGenerationSmoke.ts",
+    "smoke:v04:data-leak-final": "tsx server/scripts/v04DataLeakFinalSmoke.ts",
     "start": "tsx server/index.ts",
     "preview": "vite preview"
   },

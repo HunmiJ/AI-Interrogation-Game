@@ -1,14 +1,15 @@
 import { AlertTriangle, Gavel, Scale, ShieldAlert } from 'lucide-react'
-import { npcs } from '../data/gameData'
+import type { NPC } from '../types/game'
 import { NpcPortrait } from './NPCCard'
 
 interface FinalAccusationProps {
   selectedNpcId: string | null
   onSelect: (npcId: string) => void
   onAccuse: (npcId: string) => void
+  npcs: NPC[]
 }
 
-export function FinalAccusation({ selectedNpcId, onSelect, onAccuse }: FinalAccusationProps) {
+export function FinalAccusation({ selectedNpcId, onSelect, onAccuse, npcs }: FinalAccusationProps) {
   const selected = npcs.find((npc) => npc.id === selectedNpcId)
   return (
     <div className="page-shell max-w-6xl">
@@ -28,7 +29,7 @@ export function FinalAccusation({ selectedNpcId, onSelect, onAccuse }: FinalAccu
               <p className="mt-1 text-xs text-stone-600">{npc.occupation}</p>
               <div className="mt-5 border-t border-white/[0.07] pt-4 text-left">
                 <div className="text-[9px] uppercase tracking-widest text-stone-700">核心疑点</div>
-                <p className="mt-2 text-xs leading-5 text-stone-400">{npc.publicInformation[2]}</p>
+                <p className="mt-2 text-xs leading-5 text-stone-400">{npc.publicInformation[2] ?? npc.publicInformation[0]}</p>
               </div>
             </button>
           )
