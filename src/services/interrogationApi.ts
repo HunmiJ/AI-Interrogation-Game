@@ -35,9 +35,11 @@ function isInterrogateResponse(value: unknown): value is InterrogateResponse {
     && (candidate.evidenceRecords === undefined || Array.isArray(candidate.evidenceRecords))
 }
 
-export async function requestInterrogation(input: InterrogateRequest): Promise<InterrogateResponse> {
+export async function requestInterrogation(input: InterrogateRequest, externalSignal?: AbortSignal): Promise<InterrogateResponse> {
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), 65_000)
+  const abortFromExternal = () => controller.abort()
+  externalSignal?.addEventListener('abort', abortFromExternal, { once: true })
 
   try {
     const response = await fetch('/api/interrogate', {
@@ -80,6 +82,7 @@ export async function requestInterrogation(input: InterrogateRequest): Promise<I
     }
     throw new InterrogationApiError('NETWORK_ERROR', '无法连接 AI 审讯服务。预设问题仍可正常使用。', true)
   } finally {
+    externalSignal?.removeEventListener('abort', abortFromExternal)
     window.clearTimeout(timeout)
   }
 }

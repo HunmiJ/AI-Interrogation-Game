@@ -82,6 +82,27 @@ test('health route reports the default DeepSeek Responses provider', async () =>
   assert.equal('apiKey' in response.body, false)
   assert.equal('baseURL' in response.body, false)
   assert.equal('model' in response.body, false)
+  assert.match(response.headers['content-security-policy'], /default-src 'self'/)
+  assert.equal(response.headers['x-content-type-options'], 'nosniff')
+})
+
+test('rate limits repeated interrogation requests before they reach the LLM', async () => {
+  let calls = 0
+  const app = createApp({
+    interrogate: async () => {
+      calls += 1
+      return { reply: 'ok', emotion: 'calm', revealedFactIds: [], contradictionIds: [], unlockedEvidenceIds: [], presentedEvidenceIds: [] }
+    },
+  })
+  const payload = { npcId: 'jack', message: '你在哪里？', conversationHistory: [], discoveredEvidenceIds: [] }
+  for (let index = 0; index < 12; index += 1) {
+    assert.equal((await request(app).post('/api/interrogate').send(payload)).status, 200)
+  }
+  const limited = await request(app).post('/api/interrogate').send(payload)
+  assert.equal(limited.status, 429)
+  assert.equal(limited.body.error.code, 'INTERROGATION_RATE_LIMITED')
+  assert.equal(calls, 12)
+  assert.ok(Number(limited.headers['retry-after']) >= 1)
 })
 
 test('rejects invalid or oversized interrogation input', async () => {

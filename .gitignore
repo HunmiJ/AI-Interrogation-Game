@@ -9,5 +9,6 @@ npm-debug.log*
 *.tmp
 *.temp
 *.tsbuildinfo
+.cache/
 .v03-*
 .fact-fix-*

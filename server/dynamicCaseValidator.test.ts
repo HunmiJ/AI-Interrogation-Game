@@ -4,7 +4,7 @@ import request from 'supertest'
 import { createApp } from './app'
 import { createValidDynamicCaseFixture } from './dynamicCases/fixtures'
 import { caseDefinitionToGeneratedDraft } from './dynamicCases/generatedCaseDraft'
-import { generateValidatedCase, type CaseTextGenerator } from './dynamicCases/generator'
+import { CaseGenerationError, generateValidatedCase, type CaseTextGenerator } from './dynamicCases/generator'
 import { toPublicCaseDefinition } from './dynamicCases/publicCase'
 import { validateDynamicInvestigationTurn } from './dynamicCases/runtime'
 import { DynamicCaseSessionStore } from './dynamicCases/sessionStore'
@@ -147,6 +147,19 @@ test('public dynamic case excludes culpritId, private profiles and hidden soluti
   assert.equal((publicCase.facts as unknown[]).length, 0)
 })
 
+test('generation API never exposes internal validator reasons or hidden node IDs', async () => {
+  const app = createApp({
+    generateCase: async () => {
+      throw new CaseGenerationError('GENERATION_VALIDATION_FAILED', '本次案件生成失败，请重新生成。', 422, true, ['CULPRIT_CHAIN_INCOMPLETE: secret_fact_id'])
+    },
+  })
+  const response = await request(app).post('/api/cases/generate').send({ caseType: 'item-swap', difficulty: 'normal' })
+  const serialized = JSON.stringify(response.body)
+  assert.equal(response.status, 422)
+  assert.equal(response.body.error.reason, '案件未通过结构与可解性验证。')
+  assert.doesNotMatch(serialized, /secret_fact_id|CULPRIT_CHAIN_INCOMPLETE/)
+})
+
 test('validated dynamic case enters existing API game flow and keeps NPC histories isolated', async () => {
   const fixture = createValidDynamicCaseFixture()
   const store = new DynamicCaseSessionStore()
@@ -236,4 +249,17 @@ test('new dynamic sessions keep investigation progress isolated from older sessi
   assert.deepEqual(store.get(first.sessionId)?.progress.confirmedFactIds, ['jack_stayed_after_event'])
   assert.deepEqual(store.get(second.sessionId)?.progress.confirmedFactIds, [])
   assert.ok(!store.get(second.sessionId)?.progress.discoveredEvidenceIds.includes('camera-metadata'))
+})
+
+test('dynamic session storage stays bounded without evicting the newest sessions', () => {
+  const store = new DynamicCaseSessionStore()
+  const fixture = createValidDynamicCaseFixture()
+  const validation = validateCaseDefinition(fixture)
+  const ids: string[] = []
+  for (let index = 0; index < 55; index += 1) {
+    ids.push(store.create({ caseDefinition: structuredClone(fixture), validation, generationAttempts: 1, retryCount: 0, options: { caseType: 'item-swap', difficulty: 'normal' } }).sessionId)
+  }
+  assert.equal(store.size, 50)
+  assert.equal(store.get(ids[0]), undefined)
+  assert.ok(store.get(ids.at(-1)!))
 })

@@ -12,6 +12,7 @@ import { toPublicCaseDefinition } from './dynamicCases/publicCase'
 import { dynamicCaseSessionStore } from './dynamicCases/sessionStore'
 import { resolveDynamicCase } from './dynamicCases/dynamicResolution'
 import type { GenerationOptions } from './dynamicCases/types'
+import { createRateLimit, setSecurityHeaders } from './middleware/requestProtection'
 
 const requestSchema = z.object({
   caseSessionId: z.string().uuid().optional(),
@@ -37,7 +38,21 @@ export function createApp(options: { interrogate?: InterrogateHandler; generateC
   let generationInProgress = false
 
   app.disable('x-powered-by')
+  app.use(setSecurityHeaders)
   app.use(express.json({ limit: '32kb' }))
+
+  const interrogationRateLimit = createRateLimit({
+    windowMs: 60_000,
+    max: 12,
+    code: 'INTERROGATION_RATE_LIMITED',
+    message: '提问过于频繁，请稍候再试。',
+  })
+  const generationRateLimit = createRateLimit({
+    windowMs: 5 * 60_000,
+    max: 3,
+    code: 'GENERATION_RATE_LIMITED',
+    message: '案件生成次数过多，请稍后再试。经典案件仍可正常游玩。',
+  })
 
   app.get('/api/health', (_request, response) => {
     try {
@@ -56,7 +71,7 @@ export function createApp(options: { interrogate?: InterrogateHandler; generateC
     }
   })
 
-  app.post('/api/interrogate', async (request, response) => {
+  app.post('/api/interrogate', interrogationRateLimit, async (request, response) => {
     const parsed = requestSchema.safeParse(request.body)
     if (!parsed.success) {
       response.status(400).json({
@@ -92,7 +107,7 @@ export function createApp(options: { interrogate?: InterrogateHandler; generateC
     }
   })
 
-  app.post('/api/cases/generate', async (request, response) => {
+  app.post('/api/cases/generate', generationRateLimit, async (request, response) => {
     const parsed = z.object({
       caseType: z.enum(['random', 'theft', 'data-leak', 'fraud', 'item-swap']),
       difficulty: z.enum(['easy', 'normal', 'hard']),
@@ -124,7 +139,11 @@ export function createApp(options: { interrogate?: InterrogateHandler; generateC
           code: known.code,
           message: known.message,
           retryable: known.retryable,
-          reason: known.safeReasons[0] ?? (known.code === 'GENERATOR_OFFLINE' ? 'AI CASE GENERATOR OFFLINE' : '案件证据链未通过完整性验证。'),
+          reason: known.code === 'GENERATOR_OFFLINE' || known.code === 'GENERATOR_UNAVAILABLE'
+            ? 'AI 案件生成服务暂时不可用。'
+            : known.code === 'GENERATION_BUSY'
+              ? '已有案件正在生成。'
+              : '案件未通过结构与可解性验证。',
         },
       })
     } finally {
