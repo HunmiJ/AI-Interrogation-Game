@@ -1,14 +1,14 @@
 {
   "name": "ai-interrogation-game",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.5.0-rc.1",
   "type": "module",
   "scripts": {
     "dev": "concurrently --kill-others -n server,client -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
     "dev:client": "vite",
     "dev:server": "tsx watch server/index.ts",
     "typecheck": "tsc -b && tsc -p server/tsconfig.json",
-    "build": "npm run typecheck && vite build",
+    "build": "npm run typecheck && vite build --configLoader runner",
     "test": "tsx --test server/**/*.test.ts",
     "smoke:deepseek": "tsx server/scripts/deepseekSmoke.ts",
     "smoke:interrogate": "tsx server/scripts/interrogateSmoke.ts",

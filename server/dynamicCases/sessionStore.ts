@@ -21,8 +21,23 @@ export interface DynamicCaseProgress {
 
 export class DynamicCaseSessionStore {
   private readonly sessions = new Map<string, DynamicCaseSession>()
+  private readonly maxSessions = 50
+  private readonly ttlMs = 6 * 60 * 60 * 1000
+
+  private prune(now = Date.now(), reserveSlot = false) {
+    for (const [id, session] of this.sessions) {
+      if (now - session.createdAt > this.ttlMs) this.sessions.delete(id)
+    }
+    const maximumExisting = reserveSlot ? this.maxSessions - 1 : this.maxSessions
+    while (this.sessions.size > maximumExisting) {
+      const oldestId = this.sessions.keys().next().value as string | undefined
+      if (!oldestId) break
+      this.sessions.delete(oldestId)
+    }
+  }
 
   create(input: Omit<DynamicCaseSession, 'sessionId' | 'createdAt' | 'progress'>) {
+    this.prune(Date.now(), true)
     const session: DynamicCaseSession = {
       ...input,
       sessionId: randomUUID(),
@@ -39,7 +54,13 @@ export class DynamicCaseSessionStore {
   }
 
   get(sessionId: string) {
-    return this.sessions.get(sessionId)
+    const session = this.sessions.get(sessionId)
+    if (!session) return undefined
+    if (Date.now() - session.createdAt > this.ttlMs) {
+      this.sessions.delete(sessionId)
+      return undefined
+    }
+    return session
   }
 
   applyInvestigationUpdate(sessionId: string, update: {
@@ -64,6 +85,7 @@ export class DynamicCaseSessionStore {
   }
 
   get size() {
+    this.prune()
     return this.sessions.size
   }
 }

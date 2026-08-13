@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, ArrowRight, Check, Clock3, LoaderCircle, MapPin, RefreshCw, Sparkles } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Clock3, LoaderCircle, MapPin, RefreshCw, Sparkles } from 'lucide-react'
 import { DynamicCaseApiError, generateDynamicCase } from '../services/dynamicCaseApi'
 import type { RuntimeCaseData } from '../types/game'
 import { defaultCaseGenerationSelection, GenerationSubmissionGate, optionSelectionAttributes, submitGenerationSelection, type CaseDifficultyOption, type CaseTypeOption } from './caseGenerationModel'
@@ -8,8 +8,9 @@ const stages = ['Generating scenario...', 'Building suspects...', 'Constructing 
 const typeOptions: Array<[CaseTypeOption, string]> = [['random', 'Random'], ['theft', 'Theft'], ['data-leak', 'Data Leak'], ['fraud', 'Fraud'], ['item-swap', 'Item Swap']]
 const difficultyOptions: Array<[CaseDifficultyOption, string]> = [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']]
 
-export function CaseGeneration({ onReady, generateCase = generateDynamicCase }: {
+export function CaseGeneration({ onReady, onClassic, generateCase = generateDynamicCase }: {
   onReady: (runtimeCase: RuntimeCaseData) => void
+  onClassic: () => void
   generateCase?: typeof generateDynamicCase
 }) {
   const [caseType, setCaseType] = useState<CaseTypeOption>(defaultCaseGenerationSelection.caseType)
@@ -37,7 +38,7 @@ export function CaseGeneration({ onReady, generateCase = generateDynamicCase }: 
         setStatus('ready')
       } catch (generationError) {
         const known = generationError instanceof DynamicCaseApiError ? generationError : null
-        setError(known?.reason ?? known?.message ?? '案件证据链未通过完整性验证。')
+        setError(friendlyGenerationError(known))
         setStatus('failed')
       }
     })
@@ -74,12 +75,27 @@ export function CaseGeneration({ onReady, generateCase = generateDynamicCase }: 
       {status === 'failed' && <div className="panel mt-10 p-8 text-center">
         <AlertTriangle size={30} className="mx-auto text-amber-500" /><div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-400">CASE GENERATION FAILED</div>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-stone-500">{error}</p>
-        <button type="button" className="secondary-button mt-7" onClick={() => void generate()}><RefreshCw size={14} /> 重新生成</button>
+        <div className="mt-7 flex flex-wrap justify-center gap-3">
+          <button type="button" className="primary-button compact" onClick={() => void generate()}><RefreshCw size={14} /> 重新生成</button>
+          <button type="button" className="secondary-button compact" onClick={() => setStatus('idle')}><ArrowLeft size={14} /> 调整选项</button>
+          <button type="button" className="secondary-button compact" onClick={onClassic}>进入经典案件 <ArrowRight size={14} /></button>
+        </div>
+        <p className="mt-5 text-[10px] text-stone-700">动态案件失败不会自动替换为经典案件；由你决定重试或切换。</p>
       </div>}
 
       {status === 'idle' && <div className="mt-8 flex justify-end"><button type="button" className="primary-button" onClick={() => void generate()}><Sparkles size={15} /> Generate Case</button></div>}
     </div>
   )
+}
+
+function friendlyGenerationError(error: DynamicCaseApiError | null) {
+  if (!error) return '案件生成遇到未知错误，请重试。'
+  if (error.code === 'GENERATION_TIMEOUT') return '生成等待时间过长。可以重试、调整案件选项，或先体验经典案件。'
+  if (error.code === 'GENERATOR_OFFLINE') return 'AI 案件生成服务暂时不可用。经典案件仍可完整游玩。'
+  if (error.code === 'GENERATION_RATE_LIMITED') return '短时间内生成次数过多，请稍后再试。经典案件仍可完整游玩。'
+  if (error.code === 'GENERATION_BUSY') return '已有案件正在生成，请稍候再试。'
+  if (error.code === 'GENERATION_VALIDATION_FAILED') return '生成内容未通过证据链与可解性验证，没有进入游戏。请重新生成。'
+  return error.reason ?? error.message
 }
 
 export function OptionGroup({ title, options, value, onChange, disabled = false }: { title: string; options: Array<[string, string]>; value: string; onChange: (value: string) => void; disabled?: boolean }) {

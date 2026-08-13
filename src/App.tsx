@@ -42,7 +42,7 @@ export default function App() {
       aiRuntimeStatus={aiConversations.runtimeStatus}
       onBack={() => actions.goTo(backTargets[state.stage as keyof typeof backTargets])}
     >
-      {state.stage === 'case-generation' && <CaseGeneration onReady={(runtimeCase) => { aiConversations.reset(); actions.startCase(runtimeCase) }} />}
+      {state.stage === 'case-generation' && <CaseGeneration onClassic={() => { aiConversations.reset(); actions.startCase(classicRuntimeCase) }} onReady={(runtimeCase) => { aiConversations.reset(); actions.startCase(runtimeCase) }} />}
       {state.stage === 'briefing' && <CaseBriefing caseData={runtimeCase.case} onContinue={() => actions.goTo('suspect-selection')} />}
       {state.stage === 'suspect-selection' && <SuspectSelection npcs={runtimeCase.npcs} selectedNpcId={state.selectedNpcId} onSelect={actions.selectNpc} onContinue={() => actions.goTo('interrogation')} />}
       {state.stage === 'interrogation' && state.selectedNpcId && (

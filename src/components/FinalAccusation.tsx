@@ -15,8 +15,8 @@ export function FinalAccusation({ selectedNpcId, onSelect, onAccuse, npcs }: Fin
     <div className="page-shell max-w-6xl">
       <div className="mx-auto max-w-2xl text-center">
         <div className="eyebrow mx-auto mb-5 w-fit"><Gavel size={13} /> FINAL ACCUSATION</div>
-        <h1 className="section-title">谁是盗窃者？</h1>
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-stone-500">这是你的最终判断。综合动机、作案条件、时间线与口供矛盾，选择一名嫌疑人结案。</p>
+        <h1 className="section-title">谁应为本案负责？</h1>
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-stone-500">这是你的最终判断。综合动机、行为条件、时间线与口供矛盾，选择一名嫌疑人结案。</p>
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -39,7 +39,7 @@ export function FinalAccusation({ selectedNpcId, onSelect, onAccuse, npcs }: Fin
       <div className="mx-auto mt-7 max-w-3xl">
         {selected ? (
           <div className="border border-danger/25 bg-danger/[0.045] p-5 sm:flex sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3"><AlertTriangle size={18} className="mt-0.5 shrink-0 text-danger" /><div><p className="text-sm text-stone-300">你将指认 <strong className="text-white">{selected.name}</strong> 为本案盗窃者</p><p className="mt-1 text-[11px] text-stone-600">提交后将公开完整真相，本轮无法更改。</p></div></div>
+                <div className="flex items-start gap-3"><AlertTriangle size={18} className="mt-0.5 shrink-0 text-danger" /><div><p className="text-sm text-stone-300">你将指认 <strong className="text-white">{selected.name}</strong> 为本案责任人</p><p className="mt-1 text-[11px] text-stone-600">提交后将公开完整真相，本轮无法更改。</p></div></div>
             <button onClick={() => onAccuse(selected.id)} className="danger-button mt-4 w-full justify-center sm:mt-0 sm:w-auto"><ShieldAlert size={15} /> 提交指认</button>
           </div>
         ) : (

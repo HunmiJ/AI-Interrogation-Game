@@ -26,7 +26,7 @@ export function GameLayout({ children, activeStep, onBack, evidenceCount = 0, ai
               className={`h-2 w-2 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}`}
               aria-hidden="true"
             />
-            <span>{isLive ? 'AI AGENT / LIVE' : '离线推演模式'}</span>
+            <span>{isLive ? 'AI AGENT / LIVE' : 'AI 离线 / 预设可用'}</span>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-stone-400">
             <FolderLock size={13} className="text-brass" /> <span>{evidenceCount} 份证据</span>

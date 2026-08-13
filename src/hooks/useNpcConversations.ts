@@ -16,7 +16,7 @@ interface FailedRequest {
 
 export type AiRuntimeStatus = 'live' | 'offline'
 
-function isLiveDeepSeekHealth(value: unknown) {
+function isLiveLlmHealth(value: unknown) {
   if (!value || typeof value !== 'object') return false
   const health = value as {
     ok?: unknown
@@ -27,7 +27,7 @@ function isLiveDeepSeekHealth(value: unknown) {
   return health.ok === true
     && health.configured === true
     && health.available === true
-    && health.provider === 'deepseek'
+    && (health.provider === 'deepseek' || health.provider === 'openai')
 }
 
 function messageId() {
@@ -39,9 +39,11 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
   const [pendingByNpc, setPendingByNpc] = useState<Record<string, boolean>>({})
   const [errorsByNpc, setErrorsByNpc] = useState<Record<string, InterrogationUiError | null>>({})
   const [runtimeStatus, setRuntimeStatus] = useState<AiRuntimeStatus>('offline')
-  const isDeepSeekRef = useRef(false)
+  const isLlmConfiguredRef = useRef(false)
   const failedByNpc = useRef<Record<string, FailedRequest | undefined>>({})
   const pendingRef = useRef<Record<string, boolean>>({})
+  const requestControllers = useRef<Record<string, AbortController | undefined>>({})
+  const sessionVersion = useRef(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -54,12 +56,13 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
         const healthRecord = health && typeof health === 'object'
           ? health as { configured?: unknown; provider?: unknown }
           : null
-        isDeepSeekRef.current = healthRecord?.configured === true && healthRecord.provider === 'deepseek'
-        setRuntimeStatus(isLiveDeepSeekHealth(health) ? 'live' : 'offline')
+        isLlmConfiguredRef.current = healthRecord?.configured === true
+          && (healthRecord.provider === 'deepseek' || healthRecord.provider === 'openai')
+        setRuntimeStatus(isLiveLlmHealth(health) ? 'live' : 'offline')
       })
       .catch(() => {
         if (!active) return
-        isDeepSeekRef.current = false
+        isLlmConfiguredRef.current = false
         setRuntimeStatus('offline')
       })
 
@@ -81,6 +84,9 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
     appendUserMessage: boolean,
   ) => {
     if (pendingRef.current[npcId]) return
+    const requestVersion = sessionVersion.current
+    const controller = new AbortController()
+    requestControllers.current[npcId] = controller
     pendingRef.current[npcId] = true
     setPendingByNpc((current) => ({ ...current, [npcId]: true }))
     setErrorsByNpc((current) => ({ ...current, [npcId]: null }))
@@ -100,7 +106,8 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
         presentedEvidenceIds,
         discoveredFactIds,
         discoveredContradictionIds,
-      })
+      }, controller.signal)
+      if (requestVersion !== sessionVersion.current || controller.signal.aborted) return
       const assistantMessage: AiConversationMessage = {
         id: messageId(),
         role: 'assistant',
@@ -113,9 +120,10 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
       }
       setConversations((current) => appendNpcMessage(current, npcId, assistantMessage))
       failedByNpc.current[npcId] = undefined
-      if (isDeepSeekRef.current) setRuntimeStatus('live')
+      if (isLlmConfiguredRef.current) setRuntimeStatus('live')
       onInvestigationUpdate(result)
     } catch (error) {
+      if (requestVersion !== sessionVersion.current || controller.signal.aborted) return
       const apiError = error instanceof InterrogationApiError
         ? error
         : new InterrogationApiError('UNKNOWN_ERROR', 'AI 审讯暂时不可用。', true)
@@ -128,6 +136,8 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
       }))
       setRuntimeStatus('offline')
     } finally {
+      if (requestVersion !== sessionVersion.current) return
+      requestControllers.current[npcId] = undefined
       pendingRef.current[npcId] = false
       setPendingByNpc((current) => ({ ...current, [npcId]: false }))
     }
@@ -160,11 +170,14 @@ export function useNpcConversations(onInvestigationUpdate: (update: Investigatio
   }, [performRequest])
 
   const reset = useCallback(() => {
+    sessionVersion.current += 1
+    Object.values(requestControllers.current).forEach((controller) => controller?.abort())
     setConversations({})
     setPendingByNpc({})
     setErrorsByNpc({})
     failedByNpc.current = {}
     pendingRef.current = {}
+    requestControllers.current = {}
   }, [])
 
   const markPresetFallback = useCallback(() => {

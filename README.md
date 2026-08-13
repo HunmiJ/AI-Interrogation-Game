@@ -1,121 +1,95 @@
 # AI Interrogation Game
 
-一个以自由审讯、角色一致性和证据推理为核心的 AI Native 网页游戏。玩家作为调查员，需要调查《午夜咖啡馆失窃案》，审讯 Jack、Alice 和 Tom，确认事实、出示证据、识别口供矛盾，最终指认真正的盗窃者。
+An AI-native investigation game where expressive NPC conversations are governed by a deterministic evidence engine.
 
-当前稳定版本为 **V0.3 AI-driven Investigation System**，正在开发 **V0.4 Dynamic Case System**。V0.4 在保留经典案件的基础上，引入经过确定性结构、质量与可解性验证的 AI 动态案件生成；该阶段尚未封版。
+> V0.5 Release Candidate · Classic Case + validated Dynamic Cases · React/TypeScript/Express
 
-## 核心玩法
+## Project overview
 
-1. 阅读案件简报、时间线和初始证据。
-2. 在三名嫌疑人之间切换，进行自由 AI 审讯或使用预设问题。
-3. 从 NPC 的回答中确认 Fact，并由确定性规则验证其合法性。
-4. 通过 Fact 动态解锁 Evidence，在后续审讯中主动出示证据。
-5. 将口供与已出示证据进行对照，确定性识别 Contradiction。
-6. 在 Investigation Notebook 中查看已确认事实、证据和矛盾。
-7. 完成最终指认，并根据调查完整度、矛盾和效率获得评分。
+AI Interrogation Game puts the player in a sealed investigation. Interview three suspects, compare testimony with evidence, expose contradictions, and submit a final accusation. The game supports a handcrafted Classic Case and AI-generated Dynamic Cases across theft, data leak, fraud, and item-swap scenarios.
 
-## V0.3 已完成功能
+This is AI-native because the model is part of the interaction and content pipeline—not a decorative chatbot. NPC replies adapt to free-form questions, while generated cases must pass deterministic validation before the player can enter them.
 
-- **Live AI NPC Interrogation**：通过真实 LLM 自由询问 Jack、Alice 和 Tom。
-- **Independent NPC Memory**：每名 NPC 在当前 session 中拥有独立对话历史，切换角色后可继续此前审讯。
-- **Knowledge Boundary**：NPC 只能使用自己的角色资料、已知事实和当前已公开证据回答。
-- **Evidence-aware Dialogue**：已发现且由玩家引用的证据会进入本轮审讯上下文。
-- **AI-driven Fact Discovery**：AI 提供自然语言回答和 Fact Candidate，服务端进行最终校验。
-- **Dynamic Evidence Unlock**：合法 Fact 可按案件规则动态解锁直接相关证据。
-- **Player-presented Evidence**：发现证据与实际出示证据是两个独立状态。
-- **Deterministic Contradiction Evaluation**：矛盾由已确认 Fact、Evidence 和玩家主动举证共同推导。
-- **Investigation Notebook**：集中展示已确认事实、证据和矛盾。
-- **Investigation Scoring**：服务端根据指认、证据、矛盾和调查效率确定性评分。
-- **Offline Fallback**：API 不可用时保留预设审讯和完整基础游戏流程。
-- **Provider Adapter**：DeepSeek 与 OpenAI 通过服务端环境变量切换，Agent 逻辑不依赖具体厂商。
-- **20-case adversarial Agent playtest**：覆盖身份保持、知识边界、Prompt Injection、跨 NPC 信息隔离、证据施压和多轮一致性。
+## Core features
 
-## AI 与确定性规则的职责边界
+- **Classic Case** — a reliable, fully playable investigation with offline preset questions.
+- **Dynamic Case Generator** — builds new cases, then checks schema, quality, dependency cycles, and solvability.
+- **AI NPC Interrogation** — independent conversation history and knowledge boundaries for each suspect.
+- **Dynamic Fact Discovery** — natural-language replies can suggest facts from the active case catalog.
+- **Evidence Unlock** — validated facts unlock related evidence through deterministic prerequisites.
+- **Contradiction Detection** — contradictions require confirmed testimony and player-presented evidence.
+- **Investigation Notebook** — one view for confirmed facts, evidence, and contradictions.
+- **Server-side Resolution** — accusation, score, culprit, and explanation remain server-controlled.
+- **Release-candidate resilience** — duplicate-request guards, cancellation on reset, timeouts, rate limits, safe fallbacks, responsive layouts, and an application error boundary.
+
+## How the AI boundary works
 
 ```text
-玩家问题
-   │
-   ▼
-AI NPC：角色化自然语言回答 + Fact Candidate
-   │
-   ▼
-Deterministic Game Logic
-   ├─ Fact Validation
-   ├─ Evidence Unlock
-   ├─ Presented Evidence Validation
-   ├─ Contradiction Evaluation
-   ├─ Investigation Scoring
-   └─ Final Case Result
+Player question
+     │
+     ▼
+AI NPC: in-character reply + candidate fact IDs
+     │
+     ▼
+Deterministic game engine
+     ├─ validates candidate facts
+     ├─ unlocks evidence
+     ├─ evaluates contradictions
+     ├─ updates server session
+     └─ calculates final score and resolution
 ```
 
-AI 负责自然语言角色交互、情绪表达和候选事实建议，但不能直接修改 Game State、决定矛盾、计算分数或裁定最终结果。所有影响游戏进度的结果都必须经过服务端确定性规则。
+The model proposes; the game engine decides. Model output cannot directly add facts, unlock evidence, create contradictions, choose the culprit, or calculate a score. See [the architecture document](docs/ARCHITECTURE.md) for the full trust boundary.
 
-## 技术栈
-
-- React + TypeScript + Vite
-- Tailwind CSS
-- Node.js + Express + TypeScript
-- DeepSeek / OpenAI Responses API Provider Adapter
-- Zod Structured Response Validation
-- Lucide React
-
-## 项目结构
+## Case generation pipeline
 
 ```text
-src/
-├─ components/          # 游戏页面、审讯界面、Notebook 与发现反馈
-├─ data/                # 可安全进入浏览器的公开案件和展示数据
-├─ hooks/               # 游戏状态与按 NPC 隔离的 session memory
-├─ services/            # 前端 API 客户端
-├─ types/               # 前端类型
-└─ utils/               # Game State、去重和离线调查规则
-
-server/
-├─ agents/              # Jack、Alice、Tom 的私有 Agent Profile
-├─ data/                # 调查规则、案件真相和确定性评分
-├─ prompts/             # 角色、知识边界、证据与行为 Prompt 模块
-├─ providers/           # DeepSeek / OpenAI Responses API Adapter
-├─ services/            # 审讯编排、Fact Candidate 与证据出示识别
-├─ scripts/             # 真实 Provider 与调查链路 smoke tests
-├─ types/               # 服务端 Agent 与 API 类型
-├─ app.ts               # Express API、校验与错误边界
-└─ index.ts             # 服务端入口
+Case options
+  → structured LLM draft
+  → safe normalization
+  → targeted repair when needed (maximum 3 total attempts)
+  → schema and narrative-quality checks
+  → dependency-cycle and solvability validation
+  → private server session
+  → reduced public case payload
 ```
 
-私有 Agent Profile、未公开案件信息、API Key、评分规则执行和最终案件裁定均保留在服务端，不进入前端 bundle。
+Invalid or exhausted generations never enter the game. The failure screen offers an explicit retry, option change, or Classic Case path; it never disguises a fallback as a generated case.
 
-## 本地运行
+## Tech stack
 
-需要 Node.js 18 或更高版本。
+- React, TypeScript, Vite
+- Tailwind CSS and Lucide React
+- Node.js, Express, Zod
+- DeepSeek by default, with an OpenAI provider adapter
+- Node test runner and Supertest
+
+## Local setup
+
+Requirements: Node.js 18+ and npm.
 
 ```bash
 npm install
 copy .env.example .env
+npm run dev
 ```
 
-在本地 `.env` 中填写 Provider API Key。默认配置使用 DeepSeek：
+Open the Vite address printed in the terminal. The Classic Case works without an API key. To use free interrogation and Dynamic Cases, set a server-side provider key in `.env`:
 
 ```env
 LLM_PROVIDER=deepseek
-LLM_API_KEY=your_deepseek_api_key
+LLM_API_KEY=your_provider_key
 LLM_MODEL=deepseek-v4-flash
 LLM_BASE_URL=https://api.deepseek.com
 PORT=8787
 LLM_TIMEOUT_MS=60000
 DEBUG_AI_INVESTIGATION=false
+DEBUG_DYNAMIC_CASE_INVESTIGATION=false
 ```
 
-启动前端和后端：
+Use [.env.example](.env.example) as the source of truth. Never prefix the key with `VITE_`; client-prefixed variables are bundled into browser code.
 
-```bash
-npm run dev
-```
-
-浏览器访问终端显示的 Vite 地址即可。真实 `.env` 已被 Git 忽略，请勿提交或在客户端代码中使用 API Key。
-
-### 切换到 OpenAI
-
-只需修改服务端环境变量并配置对应 Provider 的 Key：
+To use OpenAI instead, change only the server environment:
 
 ```env
 LLM_PROVIDER=openai
@@ -123,61 +97,105 @@ LLM_MODEL=gpt-4.1-mini
 LLM_BASE_URL=https://api.openai.com/v1
 ```
 
-Agent Profile、Prompt、对话历史和确定性调查规则无需修改。
-
-## 可用命令
+## Commands
 
 ```bash
-npm run dev                        # 同时启动 Vite 和 Express
-npm run dev:client                 # 仅启动前端
-npm run dev:server                 # 仅启动后端
-npm run typecheck                  # 检查前后端 TypeScript
-npm test                           # 运行全部自动测试
-npm run build                      # 类型检查并构建生产资源
-npm run smoke:v03                  # 真实 Jack Fact/Evidence 链路测试
-npm run smoke:v03:contradiction    # 真实 Tom pacing/contradiction 测试
+npm run dev                         # client + Express development servers
+npm run typecheck                   # strict client/server TypeScript checks
+npm test                            # deterministic automated test suite
+npm run build                       # typecheck + production client bundle
+npm run preview                     # preview a production build
+npm run smoke:v03                   # real-provider investigation smoke test
+npm run smoke:v04:generation        # real-provider generation smoke test
+npm run smoke:v04:data-leak-final   # real-provider data-leak final smoke test
 ```
 
-## API 概览
+Smoke commands consume provider quota and are intentionally excluded from routine automated testing.
 
-`POST /api/interrogate`
+## Repository structure
 
-```json
-{
-  "npcId": "jack",
-  "message": "你 23:09 在哪里？",
-  "conversationHistory": [],
-  "discoveredEvidenceIds": ["alarm-log"],
-  "presentedEvidenceIds": [],
-  "discoveredFactIds": [],
-  "discoveredContradictionIds": []
-}
+```text
+src/
+├─ components/       UI flow, loading/error/empty states, Error Boundary
+├─ data/             browser-safe Classic Case display data
+├─ hooks/            game state and isolated NPC conversation sessions
+├─ services/         bounded API clients
+├─ types/            public client contracts
+└─ utils/            deterministic browser session helpers
+
+server/
+├─ agents/           private Classic NPC profiles
+├─ data/             classic truth, evidence rules, scoring
+├─ dynamicCases/     generation, validation, sessions, resolution
+├─ middleware/       security headers and cost-control rate limits
+├─ prompts/          server-only interrogation instructions
+├─ providers/        DeepSeek/OpenAI adapters and safe error handling
+├─ services/         interrogation orchestration and validation
+└─ scripts/          opt-in real-provider smoke tests
+
+docs/
+└─ ARCHITECTURE.md    public architecture and security boundaries
 ```
 
-响应中的 `revealedFactIds`、`contradictionIds` 和 `unlockedEvidenceIds` 均为服务端验证后的结果。`POST /api/case/resolve` 在最终指认后返回服务端确定性结案与评分。
+## Security and cost controls
 
-## 安全与可靠性
+- Provider credentials are read only by Express; `.env` is Git-ignored.
+- Private profiles, full prompts, culprit IDs, and unrevealed solution nodes stay server-side.
+- Public Dynamic Case payloads are allowlisted and regression-tested for leaks.
+- Request schemas enforce strict length, array, and body-size bounds.
+- Free interrogation is limited per client; expensive generation has a stricter time window.
+- Generation performs at most three attempts and only one generation runs at a time.
+- Client requests have timeouts; reset aborts in-flight interrogation responses.
+- Provider logs redact credentials; verbose investigation traces default to off.
+- Security headers restrict framing, referrers, browser permissions, and resource origins.
 
-- API Key 只由 Express 服务端通过环境变量读取。
-- `.env`、构建产物、依赖目录和临时日志不会进入 Git。
-- NPC 私有信息、完整案件真相和内部 Prompt 不发送到 React 前端。
-- 请求具有类型、长度和体积限制，并包含超时、重试与安全错误处理。
-- Provider 错误日志会脱敏；详细调查日志默认关闭，仅在本地显式设置 `DEBUG_AI_INVESTIGATION=true` 时启用。
-- 未知 Fact/Contradiction ID 会被拒绝，所有集合写入均去重。
-- 单轮处理设置明确 transaction boundary，防止递归或 cascading unlock。
+## Testing
 
-## 当前限制
+The deterministic suite covers Classic, V0.3 investigation, V0.4 Dynamic Cases, semantic fact matching, evidence/contradiction graphs, session isolation/reset, generation retries, private-data exclusion, provider routing, credential redaction, request limits, and V0.5 reliability controls.
 
-- NPC 对话与调查进度只保存在当前浏览器 session，刷新后会清空。
-- 暂无数据库、登录、多设备同步或长期持久化 NPC Memory。
-- LLM 回答措辞具有随机性；关键 Game State 由语义候选补偿和确定性 validator 保护。
-- 回答延迟、可用性和成本取决于所配置的模型与 Provider。
-- 当前仅包含固定案件《午夜咖啡馆失窃案》，尚未实现 Dynamic Case Generation。
+Release-candidate checks:
 
-## Development History
+```bash
+npm run typecheck
+npm run build
+npm test
+git diff --check
+git status --ignored --short
+```
 
-- **V0.1** — Offline Playable Prototype
-- **V0.1.1** — UI/UX Polish
-- **V0.2** — Live AI NPC Interrogation
-- **V0.3** — AI-driven Investigation System
-- **V0.4（开发中）** — Dynamic Case System
+## Screenshots and demo
+
+Final V1.0 media will be added after V0.5 manual browser acceptance:
+
+- Home and case-mode selection
+- Dynamic Case generation and validation
+- Free AI interrogation with Fact/Evidence feedback
+- Investigation Notebook
+- Final accusation and result score
+- Short end-to-end demo recording
+
+## Version history
+
+- **V0.1** — Offline playable prototype
+- **V0.1.1** — UI/UX polish
+- **V0.2** — Live AI NPC interrogation
+- **V0.3** — AI-driven investigation system
+- **V0.4** — Validated Dynamic Case system (`v0.4.0`)
+- **V0.5 RC** — Portfolio documentation, resilience, safety, cost controls, and responsive polish (current branch)
+
+## Known limitations
+
+- Investigation progress is in memory and is lost on refresh or server restart.
+- There is no account system, database, multi-device synchronization, or long-term NPC memory.
+- LLM wording, latency, availability, and cost depend on the configured provider.
+- Semantic matching is deliberately conservative, so indirect statements may require follow-up questions.
+- Dynamic generation can reject a plausible story when its evidence graph is not reliably solvable.
+- V0.5 still requires manual desktop/mobile browser acceptance before it is tagged or merged.
+
+## Future work
+
+V1.0 focuses on final browser acceptance, screenshots/demo media, repository presentation, and a public GitHub release. Possible work after V1.0 includes persistence, accessibility localization, additional authored cases, and evaluation tooling for generated-case quality.
+
+## License
+
+No license has been selected yet. Until one is added, the repository is source-available for portfolio review but does not grant reuse rights.
