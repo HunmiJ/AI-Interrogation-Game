@@ -1,5 +1,9 @@
 # AI Interrogation Game
 
+[![CI](https://github.com/HunmiJ/AI-Interrogation-Game/actions/workflows/ci.yml/badge.svg)](https://github.com/HunmiJ/AI-Interrogation-Game/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7?logo=render&logoColor=white)](https://ai-interrogation-game-3dto.onrender.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 一款结合 AI 对话与确定性证据推理的调查游戏。玩家审讯嫌疑人、比对口供和证据、发现矛盾，并完成最终指认。
 
 ## 在线试玩
@@ -188,4 +192,4 @@ git status --ignored --short
 
 ## 许可证
 
-尚未选择许可证。除非后续添加 License，本仓库仅供作品集查看，不默认授予复用权限。
+本项目采用 [MIT License](LICENSE)，欢迎学习、复用和二次创作，并请保留原始版权与许可证声明。
