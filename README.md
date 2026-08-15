@@ -4,6 +4,8 @@
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7?logo=render&logoColor=white)](https://ai-interrogation-game-3dto.onrender.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+![AI Interrogation Game 试玩首页](docs/images/ai-interrogation-game-preview.png)
+
 一款结合 AI 对话与确定性证据推理的调查游戏。玩家审讯嫌疑人、比对口供和证据、发现矛盾，并完成最终指认。
 
 ## 在线试玩
